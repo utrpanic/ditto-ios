@@ -1,19 +1,41 @@
 import XCTest
+import DittoIO
+@testable import DittoIOImp
 
 final class HTTPNetworkImpTests: XCTestCase {
-  override func setUpWithError() throws {
-    // Put setup code here. This method is called before the invocation of each test method in the class.
+  
+  private func sut(session: URLSessionProtocol) -> HTTPNetwork {
+    return HTTPNetworkImp(session: session)
   }
-
-  override func tearDownWithError() throws {
-    // Put teardown code here. This method is called after the invocation of each test method in the class.
+    
+  func testGet() async throws {
+    let stub = HTTPNetworkResponse(body: "stub".data(using: .utf8)!)
+    let session = URLSessionMock(response: stub)
+    let sut = self.sut(session: session)
+    let params = HTTPGetParams(
+      url: URL(string: "https://test.com"),
+      headers: ["Authroization": "Bearer lsdkj23j"],
+      queries: ["query": "someWord", "num": 3]
+    )
+    _ = try await sut.get(with: params)
+    
+    XCTAssert(session.request?.url?.host == params.url?.host)
+    XCTAssert(session.request?.url?.path == params.url?.path)
+    XCTAssert(session.request?.httpMethod == HTTPMethod.get.rawValue)
+    XCTAssert(session.request?.allHTTPHeaderFields == params.headers)
+    params.queries?.forEach { key, value in
+      XCTAssert(session.request?.url?.queries[key] == String(describing: value))
+    }
   }
+}
 
-  func testExample() throws {
-    // This is an example of a functional test case.
-    // Use XCTAssert and related functions to verify your tests produce the correct results.
-    // Any test you write for XCTest can be annotated as throws and async.
-    // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-    // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+private extension URL {
+  var queries: [String: String] {
+    guard let urlComponents = URLComponents(url: self, resolvingAgainstBaseURL: false) else { return [:] }
+    var queries = [String: String]()
+    urlComponents.queryItems?.forEach { queryItem in
+      queries[queryItem.name] = queryItem.value
+    }
+    return queries
   }
 }
