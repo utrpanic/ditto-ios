@@ -13,6 +13,8 @@
 		387B4CFC2BB518630055B8EF /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 387B4CFB2BB518630055B8EF /* Base */; };
 		387B4CFE2BB518640055B8EF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 387B4CFD2BB518640055B8EF /* Assets.xcassets */; };
 		387B4D012BB518640055B8EF /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 387B4D002BB518640055B8EF /* Base */; };
+		38A8B42D2BB65142001744B2 /* DittoIO in Frameworks */ = {isa = PBXBuildFile; productRef = 38A8B42C2BB65142001744B2 /* DittoIO */; };
+		38A8B42F2BB65142001744B2 /* DittoIOImp in Frameworks */ = {isa = PBXBuildFile; productRef = 38A8B42E2BB65142001744B2 /* DittoIOImp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +26,7 @@
 		387B4CFD2BB518640055B8EF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		387B4D002BB518640055B8EF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		387B4D022BB518640055B8EF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		38A8B4282BB6497A001744B2 /* LocalPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = LocalPackage; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -31,6 +34,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				38A8B42F2BB65142001744B2 /* DittoIOImp in Frameworks */,
+				38A8B42D2BB65142001744B2 /* DittoIO in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -40,8 +45,10 @@
 		387B4CE82BB518630055B8EF = {
 			isa = PBXGroup;
 			children = (
+				38A8B4282BB6497A001744B2 /* LocalPackage */,
 				387B4CF32BB518630055B8EF /* Ditto */,
 				387B4CF22BB518630055B8EF /* Products */,
+				38A8B4292BB65126001744B2 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -67,6 +74,13 @@
 			path = Ditto;
 			sourceTree = "<group>";
 		};
+		38A8B4292BB65126001744B2 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -83,6 +97,10 @@
 			dependencies = (
 			);
 			name = Ditto;
+			packageProductDependencies = (
+				38A8B42C2BB65142001744B2 /* DittoIO */,
+				38A8B42E2BB65142001744B2 /* DittoIOImp */,
+			);
 			productName = Ditto;
 			productReference = 387B4CF12BB518630055B8EF /* Ditto.app */;
 			productType = "com.apple.product-type.application";
@@ -361,6 +379,17 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		38A8B42C2BB65142001744B2 /* DittoIO */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DittoIO;
+		};
+		38A8B42E2BB65142001744B2 /* DittoIOImp */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DittoIOImp;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 387B4CE92BB518630055B8EF /* Project object */;
 }
