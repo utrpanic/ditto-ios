@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "17E69A41-6D1B-4244-9E10-88911155E108",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "performanceAntipatternCheckerEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "RepositoryImpTests",
+        "name" : "RepositoryImpTests"
+      }
+    }
+  ],
+  "version" : 1
+}

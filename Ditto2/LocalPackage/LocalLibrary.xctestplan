@@ -1,0 +1,32 @@
+{
+  "configurations" : [
+    {
+      "id" : "2A83762C-5E06-45ED-8A9A-805542E1ED3E",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "performanceAntipatternCheckerEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "FeatureImpTests",
+        "name" : "FeatureImpTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "RepositoryImpTests",
+        "name" : "RepositoryImpTests"
+      }
+    }
+  ],
+  "version" : 1
+}

@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "7A69D81E-778F-4AC5-A10A-8524E3C7A76F",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "performanceAntipatternCheckerEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "FeatureImpTests",
+        "name" : "FeatureImpTests"
+      }
+    }
+  ],
+  "version" : 1
+}

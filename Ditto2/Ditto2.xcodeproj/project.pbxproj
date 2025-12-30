@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8CE16FFA2F03A5CC0050068A /* LocalLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = 8CE16FF92F03A5CC0050068A /* LocalLibrary */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		8CE16FCF2EF7EE830050068A /* Ditto2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ditto2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8CE16FE72EF7EEB60050068A /* LocalPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = LocalPackage; sourceTree = "<group>"; };
@@ -37,6 +41,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8CE16FFA2F03A5CC0050068A /* LocalLibrary in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -48,6 +53,7 @@
 			children = (
 				8CE16FE72EF7EEB60050068A /* LocalPackage */,
 				8CE16FD12EF7EE830050068A /* Ditto2 */,
+				8CE16FF82F03A5CC0050068A /* Frameworks */,
 				8CE16FD02EF7EE830050068A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -58,6 +64,13 @@
 				8CE16FCF2EF7EE830050068A /* Ditto2.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		8CE16FF82F03A5CC0050068A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -80,6 +93,7 @@
 			);
 			name = Ditto2;
 			packageProductDependencies = (
+				8CE16FF92F03A5CC0050068A /* LocalLibrary */,
 			);
 			productName = Ditto2;
 			productReference = 8CE16FCF2EF7EE830050068A /* Ditto2.app */;
@@ -343,6 +357,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8CE16FF92F03A5CC0050068A /* LocalLibrary */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LocalLibrary;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8CE16FC72EF7EE830050068A /* Project object */;
 }
