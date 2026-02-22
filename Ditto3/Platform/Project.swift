@@ -15,6 +15,17 @@ let project = Project(
       dependencies: []
     ),
     .target(
+      name: "PlatformTestSupport",
+      destinations: .iOS,
+      product: .framework,
+      bundleId: AppConfig.bundleId("platform.testsupport"),
+      infoPlist: .default,
+      sources: ["TestSupport/**"],
+      dependencies: [
+        .target(name: "Platform"),
+      ]
+    ),
+    .target(
       name: "PlatformTests",
       destinations: .iOS,
       product: .unitTests,

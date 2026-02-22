@@ -16,5 +16,30 @@ let project = Project(
         .project(target: "Platform", path: "../Platform"),
       ]
     ),
+    .target(
+      name: "CoreTests",
+      destinations: .iOS,
+      product: .unitTests,
+      bundleId: AppConfig.bundleId("core.tests"),
+      infoPlist: .default,
+      sources: ["Tests/**"],
+      dependencies: [
+        .target(name: "Core"),
+        .project(target: "Platform", path: "../Platform"),
+        .project(target: "PlatformTestSupport", path: "../Platform"),
+      ]
+    ),
+    .target(
+      name: "CoreTestsOnLive",
+      destinations: .iOS,
+      product: .unitTests,
+      bundleId: AppConfig.bundleId("core.tests-on-live"),
+      infoPlist: .default,
+      sources: ["TestsOnLive/**"],
+      dependencies: [
+        .target(name: "Core"),
+        .project(target: "Platform", path: "../Platform"),
+      ]
+    ),
   ]
 )

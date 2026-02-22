@@ -3,7 +3,8 @@ import Testing
 @testable import Platform
 
 struct UserDefaultsProtocolImpTests {
-  @Test func typedAccessors() throws {
+  @Test
+  func typedAccessors() throws {
     let keyPrefix = "platform-tests-\(UUID().uuidString)"
     let userDefaults = try #require(UserDefaults(suiteName: keyPrefix))
     defer {
