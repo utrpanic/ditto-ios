@@ -1,6 +1,6 @@
-import Testing
 import Platform
 import PlatformTestSupport
+import Testing
 @testable import Core
 
 struct BookmarkRepositoryImpTests {

@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 import Platform
+import Testing
 @testable import Core
 
 struct PodcastRepositoryOnLiveTests {
