@@ -18,7 +18,6 @@
 
 - Platform - Core - Feature
 - Implement Ditto2’s idea with Tuist.
-- Xcode 26
 
 ## DittoBlue
 
