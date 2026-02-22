@@ -13,12 +13,24 @@ let project = Project(
       infoPlist: .extendingDefault(
         with: [
           "CFBundleDisplayName": .string(AppConfig.displayName),
+          "UIApplicationSceneManifest": [
+            "UIApplicationSupportsMultipleScenes": false,
+            "UISceneConfigurations": [
+              "UIWindowSceneSessionRoleApplication": [
+                [
+                  "UISceneConfigurationName": "Default Configuration",
+                  "UISceneDelegateClassName": "$(PRODUCT_MODULE_NAME).SceneDelegate",
+                ],
+              ],
+            ],
+          ],
           "UILaunchStoryboardName": .string("LaunchScreen"),
         ]
       ),
       sources: ["Sources/**"],
       resources: ["Resources/**"],
       dependencies: [
+        .project(target: "Core", path: "../Core"),
         .project(target: "_Template", path: "../Feature"),
       ]
     ),

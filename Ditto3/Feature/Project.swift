@@ -25,6 +25,7 @@ let project = Project(
       infoPlist: .default,
       sources: ["_Template/Tests/**"],
       dependencies: [
+        .project(target: "Core", path: "../Core"),
         .target(name: "_Template"),
       ]
     ),
