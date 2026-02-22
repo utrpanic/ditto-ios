@@ -20,5 +20,6 @@ final class _TemplateViewController: UIViewController, _TemplatePresentable {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    view.backgroundColor = .systemBackground
   }
 }

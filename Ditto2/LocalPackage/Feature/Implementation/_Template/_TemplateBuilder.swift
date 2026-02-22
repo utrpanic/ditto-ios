@@ -1,8 +1,10 @@
 import Feature
+import Repository
 import UIKit
 
 // Repository + Child Buildable
 public protocol _TemplateDependency: Sendable {
+  var _templateRepository: _TemplateRepository { get }
 }
 
 public final class _TemplateBuilder: _TemplateBuildable {
