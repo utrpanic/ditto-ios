@@ -1,3 +1,3 @@
-public final class _TemplateRepositoryImp: _TemplateRepository, @unchecked Sendable {
+public final class _TemplateRepositoryImp: _TemplateRepository {
   public init() {}
 }

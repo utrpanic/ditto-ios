@@ -1,12 +1,18 @@
+import Core
+
 @MainActor
-protocol TopPodcastsPresentable: AnyObject {}
+protocol TopPodcastsPresentable: AnyObject {
+  func present(state: TopPodcastsState)
+}
 
 @MainActor
 protocol TopPodcastsInteractable: AnyObject {
   var state: TopPodcastsState { get }
 }
 
-public protocol TopPodcastsDependency: Sendable {}
+public protocol TopPodcastsDependency {
+  var podcastRepository: PodcastRepository { get }
+}
 
 @MainActor
 final class TopPodcastsInteractor: TopPodcastsInteractable {
@@ -17,5 +23,36 @@ final class TopPodcastsInteractor: TopPodcastsInteractable {
 
   init(dependency: TopPodcastsDependency) {
     self.dependency = dependency
+    Task {
+      await fetchTopPodcasts()
+    }
+  }
+
+  private func fetchTopPodcasts() async {
+    updateState {
+      $0.isLoading = true
+      $0.errorMessage = nil
+    }
+
+    do {
+      let items = try await dependency.podcastRepository.fetchTopPodcasts(limit: state.limit)
+      updateState {
+        $0.items = items
+      }
+    } catch {
+      updateState {
+        $0.items = []
+        $0.errorMessage = "Failed to load top podcasts."
+      }
+    }
+
+    updateState {
+      $0.isLoading = false
+    }
+  }
+
+  private func updateState(_ update: (inout TopPodcastsState) -> Void) {
+    update(&state)
+    presenter?.present(state: state)
   }
 }

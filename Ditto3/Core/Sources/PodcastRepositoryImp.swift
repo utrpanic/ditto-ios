@@ -1,7 +1,7 @@
 import Foundation
 import Platform
 
-public final class PodcastRepositoryImp: PodcastRepository, @unchecked Sendable {
+public final class PodcastRepositoryImp: PodcastRepository {
   private let session: URLSessionProtocol
 
   public init(session: URLSessionProtocol) {

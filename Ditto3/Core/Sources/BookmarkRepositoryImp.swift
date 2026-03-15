@@ -1,6 +1,6 @@
 import Platform
 
-public final class BookmarkRepositoryImp: BookmarkRepository, @unchecked Sendable {
+public final class BookmarkRepositoryImp: BookmarkRepository {
   private let userDefaults: UserDefaultsProtocol
   private let bookmarksKey: String = "bookmarks"
   private var cachedBookmarkedPodcastIDs: Set<PodcastID>?

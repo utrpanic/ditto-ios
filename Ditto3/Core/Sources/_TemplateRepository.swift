@@ -1,1 +1,1 @@
-public protocol _TemplateRepository: Sendable {}
+public protocol _TemplateRepository {}

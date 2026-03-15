@@ -31,7 +31,8 @@ let project = Project(
       resources: ["Resources/**"],
       dependencies: [
         .project(target: "Core", path: "../Core"),
-        .project(target: "_Template", path: "../Feature"),
+        .project(target: "Platform", path: "../Platform"),
+        .project(target: "TopPodcasts", path: "../Feature"),
       ]
     ),
     .target(
