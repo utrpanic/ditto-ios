@@ -1,14 +1,23 @@
-import Core
-import _Template
+import Platform
+import Repository
+import RepositoryImp
+import TopPodcasts
+import UIKit
 
-typealias Dependencies = _TemplateDependency
+typealias Dependencies = TopPodcastsDependency
 
-final class AppComponent: Dependencies, Sendable {
-  let _templateRepository: _TemplateRepository
+final class AppComponent: Dependencies {
+  let podcastRepository: PodcastRepository
 
-  var _templateBuildable: _TemplateBuildable { _TemplateBuilder(dependency: self) }
+  var topPodcastsBuildable: TopPodcastsBuildable { TopPodcastsBuilder(dependency: self) }
 
   init() {
-    _templateRepository = _TemplateRepositoryImp()
+    let session = URLSession.shared
+    podcastRepository = PodcastRepositoryImp(session: session)
+  }
+
+  @MainActor
+  func makeRootViewController() -> UIViewController {
+    UINavigationController(rootViewController: topPodcastsBuildable.build(listener: nil))
   }
 }

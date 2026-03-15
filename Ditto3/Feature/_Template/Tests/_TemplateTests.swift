@@ -1,6 +1,7 @@
-import Testing
-import Core
 @testable import _Template
+import Repository
+import RepositoryImp
+import Testing
 
 struct _TemplateTests {
   @MainActor

@@ -1,5 +1,5 @@
-import Testing
 @testable import App
+import Testing
 
 struct AppTests {
   @Test func example() async throws {

@@ -15,4 +15,5 @@ if [[ "${1:-}" == "--clean" ]]; then
   mise exec -- tuist clean
 fi
 
+mise exec -- tuist install
 mise exec -- tuist generate
