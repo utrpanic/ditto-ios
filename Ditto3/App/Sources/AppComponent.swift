@@ -1,5 +1,6 @@
-import Core
 import Platform
+import Repository
+import RepositoryImp
 import TopPodcasts
 import UIKit
 

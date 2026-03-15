@@ -30,7 +30,8 @@ let project = Project(
       sources: ["Sources/**"],
       resources: ["Resources/**"],
       dependencies: [
-        .project(target: "Core", path: "../Core"),
+        .project(target: "Repository", path: "../Core"),
+        .project(target: "RepositoryImp", path: "../Core"),
         .project(target: "Platform", path: "../Platform"),
         .project(target: "TopPodcasts", path: "../Feature"),
       ]

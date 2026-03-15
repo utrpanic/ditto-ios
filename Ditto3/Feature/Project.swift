@@ -6,7 +6,10 @@ func featureTarget(
   bundleSuffix: String,
   sourcePath: String,
   resourcesPath: String? = nil,
-  dependencies: [TargetDependency] = [.project(target: "Core", path: "../Core")]
+  dependencies: [TargetDependency] = [
+    .project(target: "Entity", path: "../Core"),
+    .project(target: "Repository", path: "../Core"),
+  ]
 ) -> Target {
   .target(
     name: name,
@@ -48,7 +51,8 @@ let project = Project(
       sourcePath: "Search",
       resourcesPath: "Search/Resources",
       dependencies: [
-        .project(target: "Core", path: "../Core"),
+        .project(target: "Entity", path: "../Core"),
+        .project(target: "Repository", path: "../Core"),
         .target(name: "Podcast"),
       ]
     ),

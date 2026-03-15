@@ -1,4 +1,6 @@
+import Entity
 import Platform
+import Repository
 
 public final class BookmarkRepositoryImp: BookmarkRepository {
   private let userDefaults: UserDefaultsProtocol

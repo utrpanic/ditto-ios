@@ -1,4 +1,4 @@
-import Core
+import Entity
 import SwiftUI
 
 struct TopPodcastsView: View {

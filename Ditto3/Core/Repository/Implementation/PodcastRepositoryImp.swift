@@ -1,5 +1,7 @@
+import Entity
 import Foundation
 import Platform
+import Repository
 
 public final class PodcastRepositoryImp: PodcastRepository {
   private let session: URLSessionProtocol

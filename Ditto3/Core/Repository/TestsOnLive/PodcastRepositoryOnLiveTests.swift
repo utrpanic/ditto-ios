@@ -1,7 +1,9 @@
+import Entity
 import Foundation
 import Platform
+@testable import Repository
+@testable import RepositoryImp
 import Testing
-@testable import Core
 
 struct PodcastRepositoryOnLiveTests {
   @Test

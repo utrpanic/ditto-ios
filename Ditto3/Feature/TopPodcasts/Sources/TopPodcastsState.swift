@@ -1,4 +1,4 @@
-import Core
+import Entity
 
 struct TopPodcastsState {
   var title = "TopPodcasts"

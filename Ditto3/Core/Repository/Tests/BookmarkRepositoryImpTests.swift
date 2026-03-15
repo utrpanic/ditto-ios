@@ -1,7 +1,9 @@
+import Entity
 import Platform
 import PlatformTestSupport
+@testable import Repository
+@testable import RepositoryImp
 import Testing
-@testable import Core
 
 struct BookmarkRepositoryImpTests {
   @Test

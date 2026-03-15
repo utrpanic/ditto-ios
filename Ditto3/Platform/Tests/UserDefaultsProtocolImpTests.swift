@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import Platform
+import Testing
 
 struct UserDefaultsProtocolImpTests {
   @Test

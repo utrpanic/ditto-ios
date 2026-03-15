@@ -1,8 +1,10 @@
+import Entity
 import Foundation
 import Platform
 import PlatformTestSupport
+@testable import Repository
+@testable import RepositoryImp
 import Testing
-@testable import Core
 
 struct PodcastRepositoryImpTests {
   @Test
