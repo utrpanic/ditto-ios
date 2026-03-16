@@ -36,5 +36,19 @@ let project = Project(
         .target(name: "Platform"),
       ]
     ),
+  ],
+  schemes: [
+    .scheme(
+      name: "Platform",
+      buildAction: .buildAction(
+        targets: [
+          "Platform",
+          "PlatformTestSupport",
+        ]
+      ),
+      testAction: .targets([
+        .testableTarget(target: "PlatformTests"),
+      ])
+    ),
   ]
 )

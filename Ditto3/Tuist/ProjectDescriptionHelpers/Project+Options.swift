@@ -2,6 +2,7 @@ import ProjectDescription
 
 public extension Project.Options {
   static let `default` = Self.options(
+    automaticSchemesOptions: .disabled,
     textSettings: .textSettings(
       usesTabs: false,
       indentWidth: 2,

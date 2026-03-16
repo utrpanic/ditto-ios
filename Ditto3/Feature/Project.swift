@@ -62,5 +62,19 @@ let project = Project(
       sourcePath: "TopPodcasts",
       resourcesPath: "TopPodcasts/Resources"
     ),
+  ],
+  schemes: [
+    .scheme(
+      name: "Feature",
+      buildAction: .buildAction(
+        targets: [
+          "Bookmarks",
+          "New",
+          "Podcast",
+          "Search",
+          "TopPodcasts",
+        ]
+      )
+    ),
   ]
 )
