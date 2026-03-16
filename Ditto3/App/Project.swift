@@ -9,10 +9,10 @@ let project = Project(
       name: "App",
       destinations: .iOS,
       product: .app,
-      bundleId: AppConfig.bundleId("app"),
+      bundleId: "com.example.ditto3",
       infoPlist: .extendingDefault(
         with: [
-          "CFBundleDisplayName": .string(AppConfig.displayName),
+          "CFBundleDisplayName": .string("Ditto3"),
           "UIApplicationSceneManifest": [
             "UIApplicationSupportsMultipleScenes": false,
             "UISceneConfigurations": [
@@ -30,17 +30,17 @@ let project = Project(
       sources: ["Sources/**"],
       resources: ["Resources/**"],
       dependencies: [
-        .project(target: "Repository", path: "../Core"),
-        .project(target: "RepositoryImp", path: "../Core"),
-        .project(target: "Platform", path: "../Platform"),
-        .project(target: "TopPodcasts", path: "../Feature"),
+        .platform(target: "Platform"),
+        .core(target: "Repository"),
+        .core(target: "RepositoryImp"),
+        .feature(target: "TopPodcasts"),
       ]
     ),
     .target(
       name: "AppTests",
       destinations: .iOS,
       product: .unitTests,
-      bundleId: AppConfig.bundleId("app.tests"),
+      bundleId: "com.example.ditto3.tests",
       infoPlist: .default,
       sources: ["Tests/**"],
       dependencies: [

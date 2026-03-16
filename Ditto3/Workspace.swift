@@ -2,7 +2,7 @@ import ProjectDescription
 import ProjectDescriptionHelpers
 
 let workspace = Workspace(
-  name: AppConfig.projectName,
+  name: "Ditto3",
   projects: [
     "App",
     "Core",

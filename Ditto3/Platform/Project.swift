@@ -5,33 +5,21 @@ let project = Project(
   name: "Platform",
   options: .default,
   targets: [
-    .target(
+    .platformFrameworkTarget(
       name: "Platform",
-      destinations: .iOS,
-      product: .framework,
-      bundleId: AppConfig.bundleId("platform"),
-      infoPlist: .default,
-      sources: ["Sources/**"],
+      sourcesPath: "Sources",
       dependencies: []
     ),
-    .target(
+    .platformFrameworkTarget(
       name: "PlatformTestSupport",
-      destinations: .iOS,
-      product: .framework,
-      bundleId: AppConfig.bundleId("platform.testsupport"),
-      infoPlist: .default,
-      sources: ["TestSupport/**"],
+      sourcesPath: "TestSupport",
       dependencies: [
         .target(name: "Platform"),
       ]
     ),
-    .target(
+    .platformUnitTestsTarget(
       name: "PlatformTests",
-      destinations: .iOS,
-      product: .unitTests,
-      bundleId: AppConfig.bundleId("platform.tests"),
-      infoPlist: .default,
-      sources: ["Tests/**"],
+      sourcesPath: "Tests",
       dependencies: [
         .target(name: "Platform"),
       ]
@@ -52,3 +40,37 @@ let project = Project(
     ),
   ]
 )
+
+private extension Target {
+  static func platformFrameworkTarget(
+    name: String,
+    sourcesPath: String,
+    resourcesPath: String? = nil,
+    dependencies: [TargetDependency]
+  ) -> Target {
+    iOSTarget(
+      name: name,
+      product: .framework,
+      bundleId: "Platform.\(name)",
+      sourcesPath: sourcesPath,
+      resourcesPath: resourcesPath,
+      dependencies: dependencies
+    )
+  }
+
+  static func platformUnitTestsTarget(
+    name: String,
+    sourcesPath: String,
+    resourcesPath: String? = nil,
+    dependencies: [TargetDependency]
+  ) -> Target {
+    iOSTarget(
+      name: name,
+      product: .unitTests,
+      bundleId: "Platform.\(name)",
+      sourcesPath: sourcesPath,
+      resourcesPath: resourcesPath,
+      dependencies: dependencies
+    )
+  }
+}

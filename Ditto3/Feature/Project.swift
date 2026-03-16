@@ -1,66 +1,64 @@
 import ProjectDescription
 import ProjectDescriptionHelpers
 
-func featureTarget(
-  name: String,
-  bundleSuffix: String,
-  sourcePath: String,
-  resourcesPath: String? = nil,
-  dependencies: [TargetDependency] = [
-    .project(target: "Entity", path: "../Core"),
-    .project(target: "Repository", path: "../Core"),
-  ]
-) -> Target {
-  .target(
-    name: name,
-    destinations: .iOS,
-    product: .framework,
-    bundleId: AppConfig.bundleId(bundleSuffix),
-    infoPlist: .default,
-    sources: ["\(sourcePath)/Sources/**"],
-    resources: resourcesPath.map { ["\($0)/**"] } ?? [],
-    dependencies: dependencies
-  )
-}
-
 let project = Project(
   name: "Feature",
   options: .default,
   targets: [
-    featureTarget(
-      name: "Bookmarks",
-      bundleSuffix: "feature.bookmarks",
-      sourcePath: "Bookmarks",
-      resourcesPath: "Bookmarks/Resources"
-    ),
-    featureTarget(
-      name: "New",
-      bundleSuffix: "feature.new",
-      sourcePath: "New",
-      resourcesPath: "New/Resources"
-    ),
-    featureTarget(
-      name: "Podcast",
-      bundleSuffix: "feature.podcast",
-      sourcePath: "Podcast",
-      resourcesPath: "Podcast/Resources"
-    ),
-    featureTarget(
-      name: "Search",
-      bundleSuffix: "feature.search",
-      sourcePath: "Search",
-      resourcesPath: "Search/Resources",
+    // .featureFrameworkTarget(
+    //   name: "Bookmarks",
+    //   sourcesPath: "Bookmarks/Sources",
+    //   resourcesPath: "Bookmarks/Resources",
+    //   dependencies: [
+    //     .core(target: "Entity"),
+    //     .core(target: "Repository"),
+    //   ]
+    // ),
+    // .featureFrameworkTarget(
+    //   name: "New",
+    //   sourcesPath: "New/Sources",
+    //   resourcesPath: "New/Resources",
+    //   dependencies: [
+    //     .core(target: "Entity"),
+    //     .core(target: "Repository"),
+    //   ]
+    // ),
+    // .featureFrameworkTarget(
+    //   name: "Podcast",
+    //   sourcesPath: "Podcast/Sources",
+    //   resourcesPath: "Podcast/Resources",
+    //   dependencies: [
+    //     .core(target: "Entity"),
+    //     .core(target: "Repository"),
+    //   ]
+    // ),
+    // .featureFrameworkTarget(
+    //   name: "Search",
+    //   sourcesPath: "Search/Sources",
+    //   resourcesPath: "Search/Resources",
+    //   dependencies: [
+    //     .core(target: "Entity"),
+    //     .core(target: "Repository"),
+    //     .target(name: "Podcast"),
+    //   ]
+    // ),
+    .featureFrameworkTarget(
+      name: "TopPodcasts",
+      sourcesPath: "TopPodcasts/Sources",
+      resourcesPath: "TopPodcasts/Resources",
       dependencies: [
-        .project(target: "Entity", path: "../Core"),
-        .project(target: "Repository", path: "../Core"),
-        .target(name: "Podcast"),
+        .core(target: "Entity"),
+        .core(target: "Repository"),
       ]
     ),
-    featureTarget(
-      name: "TopPodcasts",
-      bundleSuffix: "feature.top-podcasts",
-      sourcePath: "TopPodcasts",
-      resourcesPath: "TopPodcasts/Resources"
+    .featureUnitTestsTarget(
+      name: "TopPodcastsTests",
+      sourcesPath: "TopPodcasts/Tests",
+      dependencies: [
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "TopPodcasts"),
+      ]
     ),
   ],
   schemes: [
@@ -74,7 +72,44 @@ let project = Project(
           "Search",
           "TopPodcasts",
         ]
-      )
+      ),
+      testAction: .targets([
+        .testableTarget(target: "TopPodcastsTests"),
+      ])
     ),
   ]
 )
+
+private extension Target {
+  static func featureFrameworkTarget(
+    name: String,
+    sourcesPath: String,
+    resourcesPath: String? = nil,
+    dependencies: [TargetDependency]
+  ) -> Target {
+    iOSTarget(
+      name: name,
+      product: .framework,
+      bundleId: "Feature.\(name)",
+      sourcesPath: sourcesPath,
+      resourcesPath: resourcesPath,
+      dependencies: dependencies
+    )
+  }
+
+  static func featureUnitTestsTarget(
+    name: String,
+    sourcesPath: String,
+    resourcesPath: String? = nil,
+    dependencies: [TargetDependency]
+  ) -> Target {
+    iOSTarget(
+      name: name,
+      product: .unitTests,
+      bundleId: "Feature.\(name)",
+      sourcesPath: sourcesPath,
+      resourcesPath: resourcesPath,
+      dependencies: dependencies
+    )
+  }
+}

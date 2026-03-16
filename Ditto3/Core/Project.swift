@@ -7,44 +7,44 @@ let project = Project(
   targets: [
     .coreFrameworkTarget(
       name: "Entity",
-      sources: ["Entity/**"],
+      sourcesPath: "Entity",
       dependencies: []
     ),
     .coreFrameworkTarget(
       name: "Repository",
-      sources: ["Repository/Interface/**"],
+      sourcesPath: "Repository/Interface",
       dependencies: [
         .target(name: "Entity"),
       ]
     ),
     .coreFrameworkTarget(
       name: "RepositoryImp",
-      sources: ["Repository/Implementation/**"],
+      sourcesPath: "Repository/Implementation",
       dependencies: [
+        .platform(target: "Platform"),
         .target(name: "Entity"),
         .target(name: "Repository"),
-        .project(target: "Platform", path: "../Platform"),
       ]
     ),
     .coreUnitTestsTarget(
       name: "RepositoryImpTests",
-      sources: ["Repository/Tests/**"],
+      sourcesPath: "Repository/Tests",
       dependencies: [
+        .platform(target: "Platform"),
+        .platform(target: "PlatformTestSupport"),
         .target(name: "Entity"),
         .target(name: "Repository"),
         .target(name: "RepositoryImp"),
-        .project(target: "Platform", path: "../Platform"),
-        .project(target: "PlatformTestSupport", path: "../Platform"),
       ]
     ),
     .coreUnitTestsTarget(
       name: "RepositoryImpTestsOnLive",
-      sources: ["Repository/TestsOnLive/**"],
+      sourcesPath: "Repository/TestsOnLive",
       dependencies: [
+        .platform(target: "Platform"),
         .target(name: "Entity"),
         .target(name: "Repository"),
         .target(name: "RepositoryImp"),
-        .project(target: "Platform", path: "../Platform"),
       ]
     ),
   ],
@@ -68,32 +68,32 @@ let project = Project(
 private extension Target {
   static func coreFrameworkTarget(
     name: String,
-    sources: SourceFilesList,
+    sourcesPath: String,
+    resourcesPath: String? = nil,
     dependencies: [TargetDependency]
   ) -> Target {
-    coreTarget(name: name, product: .framework, sources: sources, dependencies: dependencies)
+    iOSTarget(
+      name: name,
+      product: .framework,
+      bundleId: "Core.\(name)",
+      sourcesPath: sourcesPath,
+      resourcesPath: resourcesPath,
+      dependencies: dependencies
+    )
   }
 
   static func coreUnitTestsTarget(
     name: String,
-    sources: SourceFilesList,
+    sourcesPath: String,
+    resourcesPath: String? = nil,
     dependencies: [TargetDependency]
   ) -> Target {
-    coreTarget(name: name, product: .unitTests, sources: sources, dependencies: dependencies)
-  }
-  
-  private static func coreTarget(
-    name: String,
-    product: Product,
-    sources: SourceFilesList,
-    dependencies: [TargetDependency]
-  ) -> Target {
-    .target(
+    iOSTarget(
       name: name,
-      destinations: .iOS,
-      product: product,
+      product: .unitTests,
       bundleId: "Core.\(name)",
-      sources: sources,
+      sourcesPath: sourcesPath,
+      resourcesPath: resourcesPath,
       dependencies: dependencies
     )
   }
