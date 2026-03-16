@@ -47,6 +47,21 @@ let project = Project(
         .project(target: "Platform", path: "../Platform"),
       ]
     ),
+  ],
+  schemes: [
+    .scheme(
+      name: "Core",
+      buildAction: .buildAction(
+        targets: [
+          "Entity",
+          "Repository",
+          "RepositoryImp",
+        ]
+      ),
+      testAction: .targets([
+        .testableTarget(target: "RepositoryImpTests"),
+      ])
+    ),
   ]
 )
 

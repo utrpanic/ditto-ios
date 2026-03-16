@@ -68,3 +68,7 @@ Derived/
 
 ### Tuist managed dependencies ###
 Tuist/.build
+
+### Fastlane outputs ###
+fastlane/report.xml
+fastlane/test_output/

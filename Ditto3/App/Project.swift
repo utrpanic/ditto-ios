@@ -47,5 +47,21 @@ let project = Project(
         .target(name: "App"),
       ]
     ),
+  ],
+  schemes: [
+    .scheme(
+      name: "App",
+      buildAction: .buildAction(
+        targets: [
+          "App",
+        ]
+      ),
+      testAction: .targets([
+        .testableTarget(target: "AppTests"),
+      ]),
+      runAction: .runAction(
+        executable: "App"
+      )
+    ),
   ]
 )
