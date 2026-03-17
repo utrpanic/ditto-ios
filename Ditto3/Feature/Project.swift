@@ -5,47 +5,47 @@ let project = Project(
   name: "Feature",
   options: .default,
   targets: [
-    // .featureFrameworkTarget(
+    // .featureTarget(
     //   name: "Bookmarks",
-    //   sourcesPath: "Bookmarks/Sources",
-    //   resourcesPath: "Bookmarks/Resources",
+    //   sourcePath: "Bookmarks/Sources",
+    //   resourcePath: "Bookmarks/Resources",
     //   dependencies: [
     //     .core(target: "Entity"),
     //     .core(target: "Repository"),
     //   ]
     // ),
-    // .featureFrameworkTarget(
+    // .featureTarget(
     //   name: "New",
-    //   sourcesPath: "New/Sources",
-    //   resourcesPath: "New/Resources",
+    //   sourcePath: "New/Sources",
+    //   resourcePath: "New/Resources",
     //   dependencies: [
     //     .core(target: "Entity"),
     //     .core(target: "Repository"),
     //   ]
     // ),
-    // .featureFrameworkTarget(
+    // .featureTarget(
     //   name: "Podcast",
-    //   sourcesPath: "Podcast/Sources",
-    //   resourcesPath: "Podcast/Resources",
+    //   sourcePath: "Podcast/Sources",
+    //   resourcePath: "Podcast/Resources",
     //   dependencies: [
     //     .core(target: "Entity"),
     //     .core(target: "Repository"),
     //   ]
     // ),
-    // .featureFrameworkTarget(
+    // .featureTarget(
     //   name: "Search",
-    //   sourcesPath: "Search/Sources",
-    //   resourcesPath: "Search/Resources",
+    //   sourcePath: "Search/Sources",
+    //   resourcePath: "Search/Resources",
     //   dependencies: [
     //     .core(target: "Entity"),
     //     .core(target: "Repository"),
     //     .target(name: "Podcast"),
     //   ]
     // ),
-    .featureFrameworkTarget(
+    .featureTarget(
       name: "TopPodcasts",
-      sourcesPath: "TopPodcasts/Sources",
-      resourcesPath: "TopPodcasts/Resources",
+      sourcePath: "TopPodcasts/Sources",
+      resourcePath: "TopPodcasts/Resources",
       dependencies: [
         .core(target: "Entity"),
         .core(target: "Repository"),
@@ -53,7 +53,7 @@ let project = Project(
     ),
     .featureUnitTestsTarget(
       name: "TopPodcastsTests",
-      sourcesPath: "TopPodcasts/Tests",
+      sourcePath: "TopPodcasts/Tests",
       dependencies: [
         .core(target: "Entity"),
         .core(target: "Repository"),
@@ -81,34 +81,34 @@ let project = Project(
 )
 
 private extension Target {
-  static func featureFrameworkTarget(
+  static func featureTarget(
     name: String,
-    sourcesPath: String,
-    resourcesPath: String? = nil,
+    sourcePath: String,
+    resourcePath: String? = nil,
     dependencies: [TargetDependency]
   ) -> Target {
     iOSTarget(
       name: name,
-      product: .framework,
+      product: resourcePath == nil ? .staticLibrary : .staticFramework,
       bundleId: "Feature.\(name)",
-      sourcesPath: sourcesPath,
-      resourcesPath: resourcesPath,
+      sourcePath: sourcePath,
+      resourcePath: resourcePath,
       dependencies: dependencies
     )
   }
 
   static func featureUnitTestsTarget(
     name: String,
-    sourcesPath: String,
-    resourcesPath: String? = nil,
+    sourcePath: String,
+    resourcePath: String? = nil,
     dependencies: [TargetDependency]
   ) -> Target {
     iOSTarget(
       name: name,
       product: .unitTests,
       bundleId: "Feature.\(name)",
-      sourcesPath: sourcesPath,
-      resourcesPath: resourcesPath,
+      sourcePath: sourcePath,
+      resourcePath: resourcePath,
       dependencies: dependencies
     )
   }

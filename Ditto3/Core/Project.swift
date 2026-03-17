@@ -5,21 +5,21 @@ let project = Project(
   name: "Core",
   options: .default,
   targets: [
-    .coreFrameworkTarget(
+    .coreTarget(
       name: "Entity",
-      sourcesPath: "Entity",
+      sourcePath: "Entity",
       dependencies: []
     ),
-    .coreFrameworkTarget(
+    .coreTarget(
       name: "Repository",
-      sourcesPath: "Repository/Interface",
+      sourcePath: "Repository/Interface",
       dependencies: [
         .target(name: "Entity"),
       ]
     ),
-    .coreFrameworkTarget(
+    .coreTarget(
       name: "RepositoryImp",
-      sourcesPath: "Repository/Implementation",
+      sourcePath: "Repository/Implementation",
       dependencies: [
         .platform(target: "Platform"),
         .target(name: "Entity"),
@@ -28,7 +28,7 @@ let project = Project(
     ),
     .coreUnitTestsTarget(
       name: "RepositoryImpTests",
-      sourcesPath: "Repository/Tests",
+      sourcePath: "Repository/Tests",
       dependencies: [
         .platform(target: "Platform"),
         .platform(target: "PlatformTestSupport"),
@@ -39,7 +39,7 @@ let project = Project(
     ),
     .coreUnitTestsTarget(
       name: "RepositoryImpTestsOnLive",
-      sourcesPath: "Repository/TestsOnLive",
+      sourcePath: "Repository/TestsOnLive",
       dependencies: [
         .platform(target: "Platform"),
         .target(name: "Entity"),
@@ -66,34 +66,34 @@ let project = Project(
 )
 
 private extension Target {
-  static func coreFrameworkTarget(
+  static func coreTarget(
     name: String,
-    sourcesPath: String,
-    resourcesPath: String? = nil,
+    sourcePath: String,
+    resourcePath: String? = nil,
     dependencies: [TargetDependency]
   ) -> Target {
     iOSTarget(
       name: name,
-      product: .framework,
+      product: resourcePath == nil ? .staticLibrary : .staticFramework,
       bundleId: "Core.\(name)",
-      sourcesPath: sourcesPath,
-      resourcesPath: resourcesPath,
+      sourcePath: sourcePath,
+      resourcePath: resourcePath,
       dependencies: dependencies
     )
   }
 
   static func coreUnitTestsTarget(
     name: String,
-    sourcesPath: String,
-    resourcesPath: String? = nil,
+    sourcePath: String,
+    resourcePath: String? = nil,
     dependencies: [TargetDependency]
   ) -> Target {
     iOSTarget(
       name: name,
       product: .unitTests,
       bundleId: "Core.\(name)",
-      sourcesPath: sourcesPath,
-      resourcesPath: resourcesPath,
+      sourcePath: sourcePath,
+      resourcePath: resourcePath,
       dependencies: dependencies
     )
   }

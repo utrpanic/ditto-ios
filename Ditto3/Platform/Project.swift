@@ -7,19 +7,19 @@ let project = Project(
   targets: [
     .platformFrameworkTarget(
       name: "Platform",
-      sourcesPath: "Sources",
+      sourcePath: "Sources",
       dependencies: []
     ),
     .platformFrameworkTarget(
       name: "PlatformTestSupport",
-      sourcesPath: "TestSupport",
+      sourcePath: "TestSupport",
       dependencies: [
         .target(name: "Platform"),
       ]
     ),
     .platformUnitTestsTarget(
       name: "PlatformTests",
-      sourcesPath: "Tests",
+      sourcePath: "Tests",
       dependencies: [
         .target(name: "Platform"),
       ]
@@ -44,32 +44,32 @@ let project = Project(
 private extension Target {
   static func platformFrameworkTarget(
     name: String,
-    sourcesPath: String,
-    resourcesPath: String? = nil,
+    sourcePath: String,
+    resourcePath: String? = nil,
     dependencies: [TargetDependency]
   ) -> Target {
     iOSTarget(
       name: name,
       product: .framework,
       bundleId: "Platform.\(name)",
-      sourcesPath: sourcesPath,
-      resourcesPath: resourcesPath,
+      sourcePath: sourcePath,
+      resourcePath: resourcePath,
       dependencies: dependencies
     )
   }
 
   static func platformUnitTestsTarget(
     name: String,
-    sourcesPath: String,
-    resourcesPath: String? = nil,
+    sourcePath: String,
+    resourcePath: String? = nil,
     dependencies: [TargetDependency]
   ) -> Target {
     iOSTarget(
       name: name,
       product: .unitTests,
       bundleId: "Platform.\(name)",
-      sourcesPath: sourcesPath,
-      resourcesPath: resourcesPath,
+      sourcePath: sourcePath,
+      resourcePath: resourcePath,
       dependencies: dependencies
     )
   }
