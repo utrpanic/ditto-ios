@@ -3,28 +3,20 @@ import SwiftUI
 
 struct TopPodcastsView: View {
   @ObservedObject var stateStore: TopPodcastsViewStateStore
+  private let title = "TopPodcasts"
 
   var body: some View {
     ScrollView {
       LazyVStack(spacing: 0) {
         header
 
-        if stateStore.state.isLoading && stateStore.state.items.isEmpty {
+        switch stateStore.state {
+        case .none, .loading:
           loadingSection
-        } else if let errorMessage = stateStore.state.errorMessage {
-          errorSection(message: errorMessage)
-        } else {
-          ForEach(Array(stateStore.state.items.enumerated()), id: \.element.id) { index, podcast in
-            PodcastRowView(
-              podcast: podcast,
-              rank: index + 1
-            )
-
-            if index < stateStore.state.items.count - 1 {
-              Divider()
-                .padding(.leading, 116)
-            }
-          }
+        case .loaded(let podcasts):
+          podcastsSection(podcasts)
+        case .failed(let error):
+          errorSection(message: error.localizedDescription)
         }
       }
       .padding(.horizontal, 20)
@@ -34,13 +26,32 @@ struct TopPodcastsView: View {
     .background(Color(uiColor: .systemBackground))
   }
 
+  @ViewBuilder
+  private func podcastsSection(_ podcasts: [Podcast]) -> some View {
+    if podcasts.isEmpty {
+      emptySection
+    } else {
+      ForEach(Array(podcasts.enumerated()), id: \.element.id) { index, podcast in
+        PodcastRowView(
+          podcast: podcast,
+          rank: index + 1
+        )
+
+        if index < podcasts.count - 1 {
+          Divider()
+            .padding(.leading, 116)
+        }
+      }
+    }
+  }
+
   private var header: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Listen All")
         .font(.system(size: 44, weight: .bold, design: .rounded))
         .kerning(-1.4)
 
-      Text(stateStore.state.title)
+      Text(title)
         .font(.headline)
         .foregroundStyle(.secondary)
     }
@@ -54,6 +65,20 @@ struct TopPodcastsView: View {
       Text("Loading top podcasts...")
         .font(.subheadline)
         .foregroundStyle(.secondary)
+    }
+    .frame(maxWidth: .infinity)
+    .padding(.vertical, 40)
+  }
+
+  private var emptySection: some View {
+    VStack(spacing: 12) {
+      Image(systemName: "dot.radiowaves.left.and.right")
+        .font(.title2)
+        .foregroundStyle(.secondary)
+      Text("No podcasts found.")
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+        .multilineTextAlignment(.center)
     }
     .frame(maxWidth: .infinity)
     .padding(.vertical, 40)
