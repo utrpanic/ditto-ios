@@ -5,47 +5,96 @@ let project = Project(
   name: "Feature",
   options: .default,
   targets: [
-    // .featureTarget(
-    //   name: "Bookmarks",
-    //   sourcePath: "Bookmarks/Sources",
-    //   resourcePath: "Bookmarks/Resources",
-    //   dependencies: [
-    //     .core(target: "Entity"),
-    //     .core(target: "Repository"),
-    //   ]
-    // ),
-    // .featureTarget(
-    //   name: "New",
-    //   sourcePath: "New/Sources",
-    //   resourcePath: "New/Resources",
-    //   dependencies: [
-    //     .core(target: "Entity"),
-    //     .core(target: "Repository"),
-    //   ]
-    // ),
-    // .featureTarget(
-    //   name: "Podcast",
-    //   sourcePath: "Podcast/Sources",
-    //   resourcePath: "Podcast/Resources",
-    //   dependencies: [
-    //     .core(target: "Entity"),
-    //     .core(target: "Repository"),
-    //   ]
-    // ),
-    // .featureTarget(
-    //   name: "Search",
-    //   sourcePath: "Search/Sources",
-    //   resourcePath: "Search/Resources",
-    //   dependencies: [
-    //     .core(target: "Entity"),
-    //     .core(target: "Repository"),
-    //     .target(name: "Podcast"),
-    //   ]
-    // ),
+    .featureTarget(
+      name: "Bookmarks",
+      sourcePath: "Bookmarks/Sources",
+      dependencies: [
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+      ]
+    ),
+    .featureUnitTestsTarget(
+      name: "BookmarksTests",
+      sourcePath: "Bookmarks/Tests",
+      dependencies: [
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "Bookmarks"),
+      ]
+    ),
+    .featureTarget(
+      name: "Main",
+      sourcePath: "Main/Sources",
+      dependencies: [
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+      ]
+    ),
+    .featureUnitTestsTarget(
+      name: "MainTests",
+      sourcePath: "Main/Tests",
+      dependencies: [
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "Main"),
+      ]
+    ),
+    .featureTarget(
+      name: "New",
+      sourcePath: "New/Sources",
+      dependencies: [
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+      ]
+    ),
+    .featureUnitTestsTarget(
+      name: "NewTests",
+      sourcePath: "New/Tests",
+      dependencies: [
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "New"),
+      ]
+    ),
+    .featureTarget(
+      name: "Podcast",
+      sourcePath: "Podcast/Sources",
+      dependencies: [
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+      ]
+    ),
+    .featureUnitTestsTarget(
+      name: "PodcastTests",
+      sourcePath: "Podcast/Tests",
+      dependencies: [
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "Podcast"),
+      ]
+    ),
+    .featureTarget(
+      name: "Search",
+      sourcePath: "Search/Sources",
+      dependencies: [
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "Podcast"),
+      ]
+    ),
+    .featureUnitTestsTarget(
+      name: "SearchTests",
+      sourcePath: "Search/Tests",
+      dependencies: [
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "Podcast"),
+        .target(name: "Search"),
+      ]
+    ),
     .featureTarget(
       name: "TopPodcasts",
       sourcePath: "TopPodcasts/Sources",
-      resourcePath: "TopPodcasts/Resources",
       dependencies: [
         .core(target: "Entity"),
         .core(target: "Repository"),
@@ -67,6 +116,7 @@ let project = Project(
       buildAction: .buildAction(
         targets: [
           "Bookmarks",
+          "Main",
           "New",
           "Podcast",
           "Search",
@@ -74,6 +124,11 @@ let project = Project(
         ]
       ),
       testAction: .targets([
+        .testableTarget(target: "BookmarksTests"),
+        .testableTarget(target: "MainTests"),
+        .testableTarget(target: "NewTests"),
+        .testableTarget(target: "PodcastTests"),
+        .testableTarget(target: "SearchTests"),
         .testableTarget(target: "TopPodcastsTests"),
       ])
     ),
