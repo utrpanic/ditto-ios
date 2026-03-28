@@ -1,6 +1,6 @@
 import UIKit
 
-public protocol SearchDependency: Sendable {}
+public protocol SearchDependency {}
 
 public final class SearchBuilder: SearchBuildable {
   private let dependency: SearchDependency

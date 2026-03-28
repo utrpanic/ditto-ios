@@ -1,8 +1,7 @@
-import UIKit
+import RIBsLite
 
-public protocol MainBuildable {
-  @MainActor func build(listener: MainListener?) -> UIViewController
+public protocol MainBuildable: Buildable {
+  @MainActor func build(listener: MainListener?) -> ViewControllable
 }
 
-@MainActor
 public protocol MainListener: AnyObject {}

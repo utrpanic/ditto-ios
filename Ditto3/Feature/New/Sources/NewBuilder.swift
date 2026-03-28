@@ -1,6 +1,6 @@
 import UIKit
 
-public protocol NewDependency: Sendable {}
+public protocol NewDependency {}
 
 public final class NewBuilder: NewBuildable {
   private let dependency: NewDependency

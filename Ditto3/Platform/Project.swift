@@ -50,7 +50,7 @@ private extension Target {
   ) -> Target {
     iOSTarget(
       name: name,
-      product: .framework,
+      product: resourcePath == nil ? .staticLibrary : .staticFramework,
       bundleId: "Platform.\(name)",
       sourcePath: sourcePath,
       resourcePath: resourcePath,

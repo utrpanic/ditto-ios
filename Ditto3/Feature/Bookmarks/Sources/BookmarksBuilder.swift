@@ -1,6 +1,6 @@
 import UIKit
 
-public protocol BookmarksDependency: Sendable {}
+public protocol BookmarksDependency {}
 
 public final class BookmarksBuilder: BookmarksBuildable {
   private let dependency: BookmarksDependency
