@@ -1,4 +1,4 @@
-import UIKit
+import RIBsLite
 
 public protocol BookmarksDependency {}
 
@@ -10,7 +10,7 @@ public final class BookmarksBuilder: BookmarksBuildable {
   }
 
   @MainActor
-  public func build(listener: BookmarksListener?) -> UIViewController {
+  public func build(listener: BookmarksListener?) -> ViewControllable {
     _ = dependency
     _ = listener
     return BookmarksViewController()

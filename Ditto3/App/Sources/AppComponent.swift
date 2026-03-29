@@ -17,11 +17,11 @@ typealias Dependencies = MainDependency
 final class AppComponent: Dependencies {
   let podcastRepository: PodcastRepository
 
-  var mainBuildable: MainBuildable { MainBuilder(dependency: self) }
-  var topPodcastsBuildable: TopPodcastsBuildable { TopPodcastsBuilder(dependency: self) }
-  var newBuildable: NewBuildable { NewBuilder(dependency: self) }
-  var bookmarksBuildable: BookmarksBuildable { BookmarksBuilder(dependency: self) }
-  var searchBuildable: SearchBuildable { SearchBuilder(dependency: self) }
+  var mainBuilder: MainBuildable { MainBuilder(dependency: self) }
+  var topPodcastsBuilder: TopPodcastsBuildable { TopPodcastsBuilder(dependency: self) }
+  var newBuilder: NewBuildable { NewBuilder(dependency: self) }
+  var bookmarksBuilder: BookmarksBuildable { BookmarksBuilder(dependency: self) }
+  var searchBuilder: SearchBuildable { SearchBuilder(dependency: self) }
 
   init() {
     let session = URLSession.shared
@@ -30,6 +30,6 @@ final class AppComponent: Dependencies {
 
   @MainActor
   func makeRootViewController() -> UIViewController {
-    mainBuildable.build(listener: nil).ui
+    mainBuilder.build(listener: nil).ui
   }
 }

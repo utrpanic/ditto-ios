@@ -1,4 +1,4 @@
-import UIKit
+import RIBsLite
 
 public protocol NewDependency {}
 
@@ -10,7 +10,7 @@ public final class NewBuilder: NewBuildable {
   }
 
   @MainActor
-  public func build(listener: NewListener?) -> UIViewController {
+  public func build(listener: NewListener?) -> ViewControllable {
     _ = dependency
     _ = listener
     return NewViewController()

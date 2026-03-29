@@ -4,12 +4,8 @@ public protocol Interactable: AnyObject {
 }
 
 @MainActor
-open class Interactor<Dependency>: Interactable {
-  public let dependency: Dependency
-  public init(dependency: Dependency) {
-    self.dependency = dependency
-  }
-
+open class Interactor: Interactable {
+  public init() {}
   public final func activate() {
     didBecomeActive()
   }

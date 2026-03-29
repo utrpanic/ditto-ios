@@ -5,10 +5,10 @@ import Search
 import TopPodcasts
 
 public protocol MainDependency {
-  var topPodcastsBuildable: TopPodcastsBuildable { get }
-  var newBuildable: NewBuildable { get }
-  var bookmarksBuildable: BookmarksBuildable { get }
-  var searchBuildable: SearchBuildable { get }
+  var topPodcastsBuilder: TopPodcastsBuildable { get }
+  var newBuilder: NewBuildable { get }
+  var bookmarksBuilder: BookmarksBuildable { get }
+  var searchBuilder: SearchBuildable { get }
 }
 
 public final class MainBuilder: Builder<MainDependency>, MainBuildable {

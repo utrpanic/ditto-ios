@@ -1,7 +1,7 @@
-import UIKit
+import RIBsLite
 
 public protocol TopPodcastsBuildable {
-  @MainActor func build(listener: TopPodcastsListener?) -> UIViewController
+  @MainActor func build(listener: TopPodcastsListener?) -> ViewControllable
 }
 
 @MainActor

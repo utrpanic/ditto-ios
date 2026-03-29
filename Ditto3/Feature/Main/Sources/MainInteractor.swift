@@ -17,15 +17,17 @@ final class MainStateStore: ObservableObject {
 }
 
 @MainActor
-final class MainInteractor: Interactor<MainDependency>, MainInteractable, MainPresentableListener, TopPodcastsListener, NewListener, BookmarksListener, SearchListener {
+final class MainInteractor: Interactor, MainInteractable, MainPresentableListener, TopPodcastsListener, NewListener, BookmarksListener, SearchListener {
+  private let dependency: MainDependency
   let store: MainStateStore
   private var state: MainState { store.state }
-  var router: MainRouter?
+  var router: MainRouting?
   weak var listener: MainListener?
 
-  override init(dependency: MainDependency) {
+  init(dependency: MainDependency) {
+    self.dependency = dependency
     self.store = MainStateStore(initialState: MainState())
-    super.init(dependency: dependency)
+    super.init()
   }
 
   override func didBecomeActive() {

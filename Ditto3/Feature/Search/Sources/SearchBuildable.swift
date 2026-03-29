@@ -1,7 +1,7 @@
-import UIKit
+import RIBsLite
 
 public protocol SearchBuildable {
-  @MainActor func build(listener: SearchListener?) -> UIViewController
+  @MainActor func build(listener: SearchListener?) -> ViewControllable
 }
 
 @MainActor

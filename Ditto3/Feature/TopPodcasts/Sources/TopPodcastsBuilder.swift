@@ -1,4 +1,4 @@
-import UIKit
+import RIBsLite
 
 public final class TopPodcastsBuilder: TopPodcastsBuildable {
   private let dependency: TopPodcastsDependency
@@ -8,7 +8,7 @@ public final class TopPodcastsBuilder: TopPodcastsBuildable {
   }
 
   @MainActor
-  public func build(listener: TopPodcastsListener?) -> UIViewController {
+  public func build(listener: TopPodcastsListener?) -> ViewControllable {
     let interactor = TopPodcastsInteractor(dependency: dependency)
     let viewController = TopPodcastsViewController(interactor: interactor)
     interactor.presenter = viewController

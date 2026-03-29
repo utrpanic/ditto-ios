@@ -1,7 +1,7 @@
-import UIKit
+import RIBsLite
 
 public protocol BookmarksBuildable {
-  @MainActor func build(listener: BookmarksListener?) -> UIViewController
+  @MainActor func build(listener: BookmarksListener?) -> ViewControllable
 }
 
 @MainActor

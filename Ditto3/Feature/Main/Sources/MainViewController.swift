@@ -9,13 +9,20 @@ protocol MainInteractable: AnyObject {
 
 @MainActor
 final class MainViewController: UITabBarController, MainViewControllable, UITabBarControllerDelegate {
+  private enum TabIdentifier {
+    static let topPodcasts = "main.top-podcasts"
+    static let new = "main.new"
+    static let bookmarks = "main.bookmarks"
+    static let search = "main.search"
+  }
+
   private let interactor: MainInteractable
   weak var listener: MainPresentableListener?
   
-  private var topPodcastsTabViewController: UIViewController?
-  private var newTabViewController: UIViewController?
-  private var bookmarksTabViewController: UIViewController?
-  private var searchTabViewController: UIViewController?
+  private var topPodcastsTab: UITab?
+  private var newTab: UITab?
+  private var bookmarksTab: UITab?
+  private var searchTab: UISearchTab?
   
   private var cancellables = Set<AnyCancellable>()
 
@@ -52,92 +59,85 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
   }
 
   private func selectTab(_ tab: MainTab) {
-    let viewController: UIViewController? = switch tab {
+    let selectedTab: UITab? = switch tab {
     case .topPodcasts:
-      topPodcastsTabViewController
+      topPodcastsTab
     case .new:
-      newTabViewController
+      newTab
     case .bookmarks:
-      bookmarksTabViewController
+      bookmarksTab
     case .search:
-      searchTabViewController
+      searchTab
     }
-    guard let viewController else { return }
-    selectedViewController = viewController
+    guard let selectedTab else { return }
+    self.selectedTab = selectedTab
   }
 
   // MARK: - MainViewControllable
 
-  func attachTopPodcastsTab(_ viewController: UIViewController) {
-    let navigationController = makeTabNavigationController(
-      rootViewController: viewController,
+  func attachTopPodcastsTab(_ viewController: ViewControllable) {
+    let navigationController = UINavigationController(rootViewController: viewController.ui)
+    let tab = UITab(
       title: "Top",
-      image: UIImage(systemName: "music.note.list")
+      image: UIImage(systemName: "music.note.list"),
+      identifier: String(describing: MainTab.topPodcasts),
+      viewControllerProvider: { _ in navigationController }
     )
-    topPodcastsTabViewController = navigationController
-    appendTab(navigationController)
+    topPodcastsTab = tab
+    appendTab(tab)
   }
 
-  func attachNewTab(_ viewController: UIViewController) {
-    let navigationController = makeTabNavigationController(
-      rootViewController: viewController,
+  func attachNewTab(_ viewController: ViewControllable) {
+    let navigationController = UINavigationController(rootViewController: viewController.ui)
+    let tab = UITab(
       title: "New",
-      image: UIImage(systemName: "sparkles")
+      image: UIImage(systemName: "sparkles"),
+      identifier: String(describing: MainTab.new),
+      viewControllerProvider: { _ in navigationController }
     )
-    newTabViewController = navigationController
-    appendTab(navigationController)
+    newTab = tab
+    appendTab(tab)
   }
 
-  func attachBookmarksTab(_ viewController: UIViewController) {
-    let navigationController = makeTabNavigationController(
-      rootViewController: viewController,
+  func attachBookmarksTab(_ viewController: ViewControllable) {
+    let navigationController = UINavigationController(rootViewController: viewController.ui)
+    let tab = UITab(
       title: "Bookmarks",
-      image: UIImage(systemName: "bookmark")
+      image: UIImage(systemName: "bookmark"),
+      identifier: String(describing: MainTab.bookmarks),
+      viewControllerProvider: { _ in navigationController }
     )
-    bookmarksTabViewController = navigationController
-    appendTab(navigationController)
+    bookmarksTab = tab
+    appendTab(tab)
   }
 
-  func attachSearchTab(_ viewController: UIViewController) {
-    let navigationController = makeTabNavigationController(
-      rootViewController: viewController,
-      title: "Search",
-      image: UIImage(systemName: "magnifyingglass")
-    )
-    searchTabViewController = navigationController
-    appendTab(navigationController)
+  func attachSearchTab(_ viewController: ViewControllable) {
+    let navigationController = UINavigationController(rootViewController: viewController.ui)
+    let tab = UISearchTab(viewControllerProvider: { _ in navigationController })
+    searchTab = tab
+    appendTab(tab)
   }
 
-  private func makeTabNavigationController(
-    rootViewController: UIViewController,
-    title: String,
-    image: UIImage?
-  ) -> UIViewController {
-    rootViewController.title = title
-    rootViewController.tabBarItem = UITabBarItem(title: title, image: image, selectedImage: image)
-    return UINavigationController(rootViewController: rootViewController)
-  }
-
-  private func appendTab(_ viewController: UIViewController) {
-    var viewControllers = viewControllers ?? []
-    viewControllers.append(viewController)
-    setViewControllers(viewControllers, animated: false)
+  private func appendTab(_ tab: UITab) {
+    var tabs = tabs
+    tabs.append(tab)
+    setTabs(tabs, animated: false)
   }
 
   // MARK: - UITabBarControllerDelegate
 
-  func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
-    let tab: MainTab? = switch viewController {
-    case topPodcastsTabViewController:
-      .topPodcasts
-    case newTabViewController:
-      .new
-    case bookmarksTabViewController:
-      .bookmarks
-    case searchTabViewController:
-      .search
-    default:
-      nil
+  func tabBarController(_ tabBarController: UITabBarController, didSelectTab selectedTab: UITab, previousTab: UITab?) {
+    let tab: MainTab?
+    if selectedTab === topPodcastsTab {
+      tab = .topPodcasts
+    } else if selectedTab === newTab {
+      tab = .new
+    } else if selectedTab === bookmarksTab {
+      tab = .bookmarks
+    } else if selectedTab === searchTab {
+      tab = .search
+    } else {
+      tab = nil
     }
     guard let tab else { return }
     listener?.didSelectTab(tab)

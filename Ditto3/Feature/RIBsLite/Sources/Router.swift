@@ -1,18 +1,11 @@
 @MainActor
-public protocol Routing: AnyObject {
-  associatedtype Dependency
-  associatedtype ViewControllable
-  var dependency: Dependency { get }
-  var viewController: ViewControllable { get }
-}
+public protocol Routing {}
 
 @MainActor
-open class Router<Dependency, ViewControllable>: Routing {
-  public let dependency: Dependency
+open class Router<ViewControllable>: Routing {
   public let viewController: ViewControllable
 
-  public init(dependency: Dependency, viewController: ViewControllable) {
-    self.dependency = dependency
+  public init(viewController: ViewControllable) {
     self.viewController = viewController
   }
 }

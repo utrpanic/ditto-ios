@@ -1,4 +1,4 @@
-import UIKit
+import RIBsLite
 
 public protocol SearchDependency {}
 
@@ -10,7 +10,7 @@ public final class SearchBuilder: SearchBuildable {
   }
 
   @MainActor
-  public func build(listener: SearchListener?) -> UIViewController {
+  public func build(listener: SearchListener?) -> ViewControllable {
     _ = dependency
     _ = listener
     return SearchViewController()
