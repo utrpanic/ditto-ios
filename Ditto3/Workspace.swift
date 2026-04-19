@@ -5,6 +5,7 @@ let workspace = Workspace(
   name: "Ditto3",
   projects: [
     "App",
+    "Architecture",
     "Core",
     "Feature",
     "Platform",

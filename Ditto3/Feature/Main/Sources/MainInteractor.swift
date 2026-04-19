@@ -5,19 +5,17 @@ import Bookmarks
 import Search
 import RIBsLite
 
-@MainActor
-protocol MainPresentableListener: AnyObject {
-  func didSelectTab(_ tab: MainTab)
+enum MainAction {
+  case selectTab(MainTab)
 }
 
-@MainActor
 final class MainStateStore: ObservableObject {
   @Published fileprivate(set) var state: MainState
   init(initialState: MainState) { self.state = initialState }
 }
 
 @MainActor
-final class MainInteractor: Interactor, MainInteractable, MainPresentableListener, TopPodcastsListener, NewListener, BookmarksListener, SearchListener {
+final class MainInteractor: Interactor, MainInteractable, TopPodcastsListener, NewListener, BookmarksListener, SearchListener {
   private let dependency: MainDependency
   let store: MainStateStore
   private var state: MainState { store.state }
@@ -37,7 +35,10 @@ final class MainInteractor: Interactor, MainInteractable, MainPresentableListene
     router?.attachSearch(listener: self)
   }
 
-  func didSelectTab(_ tab: MainTab) {
-    store.state.selectedTab = tab
+  func send(action: MainAction) {
+    switch action {
+    case let .selectTab(tab):
+      store.state.selectedTab = tab
+    }
   }
 }

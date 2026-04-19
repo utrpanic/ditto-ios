@@ -6,14 +6,10 @@ let project = Project(
   options: .default,
   targets: [
     .featureTarget(
-      name: "RIBsLite",
-      sourcePath: "RIBsLite/Sources",
-      dependencies: []
-    ),
-    .featureTarget(
       name: "Bookmarks",
       sourcePath: "Bookmarks/Sources",
       dependencies: [
+        .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
       ]
@@ -31,33 +27,34 @@ let project = Project(
       name: "Main",
       sourcePath: "Main/Sources",
       dependencies: [
+        .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
-        .target(name: "RIBsLite"),
-        .target(name: "TopPodcasts"),
-        .target(name: "New"),
         .target(name: "Bookmarks"),
+        .target(name: "New"),
         .target(name: "Search"),
+        .target(name: "TopPodcasts"),
       ]
     ),
     .featureUnitTestsTarget(
       name: "MainTests",
       sourcePath: "Main/Tests",
       dependencies: [
+        .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
-        .target(name: "RIBsLite"),
-        .target(name: "TopPodcasts"),
-        .target(name: "New"),
         .target(name: "Bookmarks"),
-        .target(name: "Search"),
         .target(name: "Main"),
+        .target(name: "New"),
+        .target(name: "Search"),
+        .target(name: "TopPodcasts"),
       ]
     ),
     .featureTarget(
       name: "New",
       sourcePath: "New/Sources",
       dependencies: [
+        .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
       ]
@@ -75,6 +72,7 @@ let project = Project(
       name: "Podcast",
       sourcePath: "Podcast/Sources",
       dependencies: [
+        .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
       ]
@@ -92,6 +90,7 @@ let project = Project(
       name: "Search",
       sourcePath: "Search/Sources",
       dependencies: [
+        .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
         .target(name: "Podcast"),
@@ -111,6 +110,7 @@ let project = Project(
       name: "TopPodcasts",
       sourcePath: "TopPodcasts/Sources",
       dependencies: [
+        .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
       ]
@@ -130,7 +130,6 @@ let project = Project(
       name: "Feature",
       buildAction: .buildAction(
         targets: [
-          "RIBsLite",
           "Bookmarks",
           "Main",
           "New",

@@ -25,13 +25,10 @@ protocol MainRouting: Routing {
 final class MainRouter: Router<MainViewControllable>, MainRouting {
   private let topPodcastsBuilder: TopPodcastsBuildable
   private var topPodcastsViewController: ViewControllable?
-
   private let newBuilder: NewBuildable
   private var newViewController: ViewControllable?
-
   private let bookmarksBuilder: BookmarksBuildable
   private var bookmarksViewController: ViewControllable?
-
   private let searchBuilder: SearchBuildable
   private var searchViewController: ViewControllable?
 

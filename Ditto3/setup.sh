@@ -10,10 +10,7 @@ if ! command -v mise >/dev/null 2>&1; then
 fi
 
 mise install
-
-if [[ "${1:-}" == "--clean" ]]; then
-  mise exec -- tuist clean
-fi
+mise exec -- tuist clean
 
 mise exec -- tuist install
-mise exec -- tuist generate
+mise exec -- tuist generate "$@"

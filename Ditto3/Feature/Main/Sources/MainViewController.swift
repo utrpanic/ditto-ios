@@ -5,9 +5,9 @@ import UIKit
 @MainActor
 protocol MainInteractable: AnyObject {
   var store: MainStateStore { get }
+  func send(action: MainAction)
 }
 
-@MainActor
 final class MainViewController: UITabBarController, MainViewControllable, UITabBarControllerDelegate {
   private enum TabIdentifier {
     static let topPodcasts = "main.top-podcasts"
@@ -17,7 +17,6 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
   }
 
   private let interactor: MainInteractable
-  weak var listener: MainPresentableListener?
   
   private var topPodcastsTab: UITab?
   private var newTab: UITab?
@@ -26,9 +25,8 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
   
   private var cancellables = Set<AnyCancellable>()
 
-  init(interactor: MainInteractable, listener: MainPresentableListener?) {
+  init(interactor: MainInteractable) {
     self.interactor = interactor
-    self.listener = listener
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -140,6 +138,6 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
       tab = nil
     }
     guard let tab else { return }
-    listener?.didSelectTab(tab)
+    interactor.send(action: .selectTab(tab))
   }
 }
