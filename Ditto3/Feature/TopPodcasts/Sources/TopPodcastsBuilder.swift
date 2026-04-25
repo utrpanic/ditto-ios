@@ -11,8 +11,10 @@ public final class TopPodcastsBuilder: TopPodcastsBuildable {
   public func build(listener: TopPodcastsListener?) -> ViewControllable {
     let interactor = TopPodcastsInteractor(dependency: dependency)
     let viewController = TopPodcastsViewController(interactor: interactor)
-    interactor.presenter = viewController
+    let router = TopPodcastsRouter(dependency: dependency, viewController: viewController)
+    interactor.router = router
     interactor.listener = listener
+    interactor.activate()
     return viewController
   }
 }

@@ -18,7 +18,6 @@ final class MainStateStore: ObservableObject {
 final class MainInteractor: Interactor, MainInteractable, TopPodcastsListener, NewListener, BookmarksListener, SearchListener {
   private let dependency: MainDependency
   let store: MainStateStore
-  private var state: MainState { store.state }
   var router: MainRouting?
   weak var listener: MainListener?
 
@@ -35,7 +34,7 @@ final class MainInteractor: Interactor, MainInteractable, TopPodcastsListener, N
     router?.attachSearch(listener: self)
   }
 
-  func send(action: MainAction) {
+  func sendAction(_ action: MainAction) {
     switch action {
     case let .selectTab(tab):
       store.state.selectedTab = tab

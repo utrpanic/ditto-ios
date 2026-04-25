@@ -5,7 +5,7 @@ import UIKit
 @MainActor
 protocol MainInteractable: AnyObject {
   var store: MainStateStore { get }
-  func send(action: MainAction)
+  func sendAction(_ action: MainAction)
 }
 
 final class MainViewController: UITabBarController, MainViewControllable, UITabBarControllerDelegate {
@@ -138,6 +138,6 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
       tab = nil
     }
     guard let tab else { return }
-    interactor.send(action: .selectTab(tab))
+    interactor.sendAction(.selectTab(tab))
   }
 }

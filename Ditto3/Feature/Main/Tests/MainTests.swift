@@ -14,7 +14,7 @@ struct MainTests {
   @Test func sendSelectTabAction_updatesSelectedTab() async throws {
     let interactor = MainInteractor(dependency: MainDependencyStub())
 
-    interactor.send(action: .selectTab(.search))
+    interactor.sendAction(.selectTab(.search))
 
     #expect(interactor.store.state.selectedTab == .search)
   }

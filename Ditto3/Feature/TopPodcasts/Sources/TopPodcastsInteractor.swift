@@ -1,51 +1,64 @@
+import Combine
 import Repository
+import RIBsLite
 
-@MainActor
-protocol TopPodcastsPresentable: AnyObject {
-  func present(state: TopPodcastsState)
+enum TopPodcastsAction {
+  case retry
 }
 
 @MainActor
 protocol TopPodcastsInteractable: AnyObject {
-  var state: TopPodcastsState { get }
-  func presentableDidLoad()
+  var store: TopPodcastsStateStore { get }
+  func sendAction(_ action: TopPodcastsAction)
 }
 
 public protocol TopPodcastsDependency {
   var podcastRepository: PodcastRepository { get }
 }
 
+final class TopPodcastsStateStore: ObservableObject {
+  @Published fileprivate(set) var state: TopPodcastsState
+  init(initialState: TopPodcastsState) { self.state = initialState }
+}
+
 @MainActor
-final class TopPodcastsInteractor: TopPodcastsInteractable {
-  private(set) var state: TopPodcastsState = .none
+final class TopPodcastsInteractor: Interactor, TopPodcastsInteractable {
   private let dependency: TopPodcastsDependency
-  private let limit = 20
-  weak var presenter: TopPodcastsPresentable?
+  let store: TopPodcastsStateStore
+  var router: TopPodcastsRouting?
   weak var listener: TopPodcastsListener?
+  
+  private let limit = 20
 
   init(dependency: TopPodcastsDependency) {
     self.dependency = dependency
+    self.store = TopPodcastsStateStore(initialState: .none)
+    super.init()
   }
 
-  func presentableDidLoad() {
+  override func didBecomeActive() {
+    guard case .none = store.state else { return }
     Task {
       await fetchTopPodcasts()
     }
   }
 
-  private func fetchTopPodcasts() async {
-    updateState(.loading)
-
-    do {
-      let items = try await dependency.podcastRepository.fetchTopPodcasts(limit: limit)
-      updateState(.loaded(items))
-    } catch {
-      updateState(.failed(error))
+  func sendAction(_ action: TopPodcastsAction) {
+    switch action {
+    case .retry:
+      Task {
+        await fetchTopPodcasts()
+      }
     }
   }
 
-  private func updateState(_ newState: TopPodcastsState) {
-    state = newState
-    presenter?.present(state: state)
+  private func fetchTopPodcasts() async {
+    store.state = .loading
+    do {
+      let items = try await dependency.podcastRepository.fetchTopPodcasts(limit: limit)
+      store.state = .loaded(items)
+    } catch {
+      store.state = .failed(error)
+    }
   }
 }

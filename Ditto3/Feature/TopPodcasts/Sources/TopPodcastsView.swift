@@ -2,15 +2,14 @@ import Entity
 import SwiftUI
 
 struct TopPodcastsView: View {
-  @ObservedObject var stateStore: TopPodcastsViewStateStore
+  @ObservedObject var store: TopPodcastsStateStore
   private let title = "TopPodcasts"
 
   var body: some View {
     ScrollView {
       LazyVStack(spacing: 0) {
         header
-
-        switch stateStore.state {
+        switch store.state {
         case .none, .loading:
           loadingSection
         case .loaded(let podcasts):
