@@ -1,23 +1,17 @@
+import SwiftUI
 import UIKit
 
 @MainActor
-final class SearchViewController: UIViewController {
-  override func viewDidLoad() {
-    super.viewDidLoad()
+final class SearchViewController: UIHostingController<SearchView>, SearchControllable {
+  private let interactor: SearchInteractable
 
-    view.backgroundColor = .systemBackground
+  init(interactor: SearchInteractable) {
+    self.interactor = interactor
+    super.init(rootView: SearchView(store: interactor.store, interactor: interactor))
+  }
 
-    let label = UILabel()
-    label.translatesAutoresizingMaskIntoConstraints = false
-    label.text = "Search"
-    label.font = .systemFont(ofSize: 28, weight: .semibold)
-    label.textAlignment = .center
-
-    view.addSubview(label)
-
-    NSLayoutConstraint.activate([
-      label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-      label.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-    ])
+  @available(*, unavailable)
+  required dynamic init?(coder aDecoder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
   }
 }
