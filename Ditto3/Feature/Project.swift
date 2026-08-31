@@ -6,6 +6,23 @@ let project = Project(
   options: .default,
   targets: [
     .featureTarget(
+      name: "Episode",
+      sourcePath: "Episode/Sources",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+      ]
+    ),
+    .featureUnitTestsTarget(
+      name: "EpisodeTests",
+      sourcePath: "Episode/Tests",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .target(name: "Episode"),
+      ]
+    ),
+    .featureTarget(
       name: "Bookmarks",
       sourcePath: "Bookmarks/Sources",
       dependencies: [
@@ -131,6 +148,7 @@ let project = Project(
       buildAction: .buildAction(
         targets: [
           "Bookmarks",
+          "Episode",
           "Main",
           "New",
           "Podcast",
@@ -140,6 +158,7 @@ let project = Project(
       ),
       testAction: .targets([
         .testableTarget(target: "BookmarksTests"),
+        .testableTarget(target: "EpisodeTests"),
         .testableTarget(target: "MainTests"),
         .testableTarget(target: "NewTests"),
         .testableTarget(target: "PodcastTests"),

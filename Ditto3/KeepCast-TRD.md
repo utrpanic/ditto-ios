@@ -44,7 +44,7 @@ Explore -> Episode Detail -> Keep/Unkeep -> Playback -> Keep List
 ```text
 Feature
   Explore
-  EpisodeDetail
+  Episode
   Keeps
   Player
 
@@ -98,7 +98,7 @@ Feature/Explore/Sources/ExploreView.swift
 Feature/Explore/Sources/ExploreState.swift
 ```
 
-### EpisodeDetail
+### Episode
 
 Displays metadata for a selected episode.
 
@@ -130,7 +130,7 @@ Responsibilities:
 - Pause/resume
 - Report playback failures
 
-For MVP, a shared player service can be injected into Explore, EpisodeDetail, and Keeps instead of building a full standalone RIB.
+For MVP, a shared player service can be injected into Explore, Episode, and Keeps instead of building a full standalone RIB.
 
 ## 5. Core Entities
 
