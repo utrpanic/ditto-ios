@@ -117,6 +117,7 @@ let project = Project(
       name: "SearchTests",
       sourcePath: "Search/Tests",
       dependencies: [
+        .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
         .target(name: "Podcast"),

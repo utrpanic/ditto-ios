@@ -1,7 +1,9 @@
-import UIKit
+import Entity
+import RIBsLite
 
-public protocol PodcastBuildable {
-  @MainActor func build(listener: PodcastListener?) -> UIViewController
+public protocol PodcastBuildable: Buildable {
+  @MainActor
+  func build(podcast: Podcast, listener: PodcastListener?) -> ViewControllable
 }
 
 @MainActor

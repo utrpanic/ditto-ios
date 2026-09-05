@@ -2,6 +2,7 @@ import Bookmarks
 import Main
 import New
 import Platform
+import Podcast
 import Repository
 import RepositoryImp
 import Search
@@ -22,6 +23,7 @@ final class AppComponent: Dependencies {
   var newBuilder: NewBuildable { NewBuilder(dependency: self) }
   var bookmarksBuilder: BookmarksBuildable { BookmarksBuilder(dependency: self) }
   var searchBuilder: SearchBuildable { SearchBuilder(dependency: self) }
+  var podcastBuilder: PodcastBuildable { PodcastBuilder(dependency: PodcastComponent()) }
 
   init() {
     let session = URLSession.shared
@@ -33,3 +35,5 @@ final class AppComponent: Dependencies {
     mainBuilder.build(listener: nil).ui
   }
 }
+
+private struct PodcastComponent: PodcastDependency {}

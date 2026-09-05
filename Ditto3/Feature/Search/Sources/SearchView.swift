@@ -49,7 +49,12 @@ struct SearchView: View {
       emptySection
     } else {
       ForEach(Array(podcasts.enumerated()), id: \.element.id) { index, podcast in
-        SearchPodcastRowView(podcast: podcast)
+        Button {
+          interactor.sendAction(.selectPodcast(podcast))
+        } label: {
+          SearchPodcastRowView(podcast: podcast)
+        }
+        .buttonStyle(.plain)
 
         if index < podcasts.count - 1 {
           Divider()

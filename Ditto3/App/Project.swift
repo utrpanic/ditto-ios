@@ -36,6 +36,7 @@ let project = Project(
         .feature(target: "Bookmarks"),
         .feature(target: "Main"),
         .feature(target: "New"),
+        .feature(target: "Podcast"),
         .feature(target: "Search"),
         .feature(target: "TopPodcasts"),
       ]

@@ -1,10 +1,12 @@
 import Combine
+import Entity
 import Repository
 import RIBsLite
 
 enum SearchAction {
   case search(String)
   case clear
+  case selectPodcast(Podcast)
 }
 
 @MainActor
@@ -43,6 +45,8 @@ final class SearchInteractor: Interactor, SearchInteractable {
     case .clear:
       searchTask?.cancel()
       store.state = .idle
+    case .selectPodcast(let podcast):
+      router?.routeToPodcast(podcast)
     }
   }
 

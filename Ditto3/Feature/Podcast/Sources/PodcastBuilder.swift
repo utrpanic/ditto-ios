@@ -1,18 +1,13 @@
-import UIKit
+import Entity
+import RIBsLite
 
 public protocol PodcastDependency: Sendable {}
 
-public final class PodcastBuilder: PodcastBuildable {
-  private let dependency: PodcastDependency
-
-  public init(dependency: PodcastDependency) {
-    self.dependency = dependency
-  }
-
+public final class PodcastBuilder: Builder<PodcastDependency>, PodcastBuildable {
   @MainActor
-  public func build(listener: PodcastListener?) -> UIViewController {
+  public func build(podcast: Podcast, listener: PodcastListener?) -> ViewControllable {
     _ = dependency
     _ = listener
-    return PodcastViewController()
+    return PodcastViewController(podcast: podcast)
   }
 }
