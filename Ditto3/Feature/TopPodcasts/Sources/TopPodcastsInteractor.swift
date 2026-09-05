@@ -1,9 +1,12 @@
 import Combine
+import Entity
+import Podcast
 import Repository
 import RIBsLite
 
 enum TopPodcastsAction {
   case retry
+  case selectPodcast(Podcast)
 }
 
 @MainActor
@@ -14,6 +17,7 @@ protocol TopPodcastsInteractable: AnyObject {
 
 public protocol TopPodcastsDependency {
   var podcastRepository: PodcastRepository { get }
+  var podcastBuilder: PodcastBuildable { get }
 }
 
 final class TopPodcastsStateStore: ObservableObject {
@@ -49,6 +53,8 @@ final class TopPodcastsInteractor: Interactor, TopPodcastsInteractable {
       Task {
         await fetchTopPodcasts()
       }
+    case .selectPodcast(let podcast):
+      router?.routeToPodcast(podcast)
     }
   }
 

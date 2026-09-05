@@ -3,7 +3,13 @@ import SwiftUI
 
 struct TopPodcastsView: View {
   @ObservedObject var store: TopPodcastsStateStore
+  private let interactor: TopPodcastsInteractable
   private let title = "TopPodcasts"
+
+  init(store: TopPodcastsStateStore, interactor: TopPodcastsInteractable) {
+    self.store = store
+    self.interactor = interactor
+  }
 
   var body: some View {
     ScrollView {
@@ -31,14 +37,19 @@ struct TopPodcastsView: View {
       emptySection
     } else {
       ForEach(Array(podcasts.enumerated()), id: \.element.id) { index, podcast in
-        PodcastRowView(
-          podcast: podcast,
-          rank: index + 1
-        )
+        Button {
+          interactor.sendAction(.selectPodcast(podcast))
+        } label: {
+          PodcastRowView(
+            podcast: podcast,
+            rank: index + 1
+          )
+        }
+        .buttonStyle(.plain)
 
         if index < podcasts.count - 1 {
           Divider()
-            .padding(.leading, 116)
+            .padding(.leading, 104)
         }
       }
     }
@@ -106,7 +117,7 @@ private struct PodcastRowView: View {
     HStack(alignment: .top, spacing: 16) {
       artwork
 
-      VStack(alignment: .leading, spacing: 10) {
+      VStack(alignment: .leading, spacing: 8) {
         Text(rankLabel)
           .font(.system(size: 14, weight: .semibold))
           .foregroundStyle(.secondary)
@@ -120,14 +131,15 @@ private struct PodcastRowView: View {
           .font(.system(size: 17, weight: .regular))
           .foregroundStyle(.secondary)
           .lineLimit(1)
-
-        HStack {
-          durationPill
-          Spacer()
-          rowActions
-        }
       }
+
+      Spacer(minLength: 8)
+
+      Image(systemName: "chevron.right")
+        .font(.system(size: 14, weight: .semibold))
+        .foregroundStyle(.tertiary)
     }
+    .contentShape(Rectangle())
     .padding(.vertical, 18)
   }
 
@@ -152,48 +164,11 @@ private struct PodcastRowView: View {
           .foregroundStyle(.white.opacity(0.9))
       }
     }
-    .frame(width: 96, height: 96)
+    .frame(width: 84, height: 84)
     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-  }
-
-  private var durationPill: some View {
-    HStack(spacing: 10) {
-      Image(systemName: "play.fill")
-        .font(.system(size: 14, weight: .bold))
-      Text(durationLabel)
-        .font(.system(size: 17, weight: .semibold))
-    }
-    .foregroundStyle(Color(red: 0.44, green: 0.19, blue: 0.95))
-    .padding(.horizontal, 16)
-    .padding(.vertical, 10)
-    .background(
-      Capsule(style: .continuous)
-        .fill(Color(uiColor: .secondarySystemBackground))
-    )
-  }
-
-  private var rowActions: some View {
-    HStack(spacing: 16) {
-      Image(systemName: "arrow.down.circle")
-      Image(systemName: "ellipsis")
-    }
-    .font(.system(size: 20, weight: .medium))
-    .foregroundStyle(.tertiary)
   }
 
   private var rankLabel: String {
     "#\(rank) in Top Podcasts"
-  }
-
-  private var durationLabel: String {
-    // TODO: Replace this placeholder duration once episode-level runtime data is available.
-    let minutes = 18 + (rank * 7 % 42)
-    if minutes >= 60 {
-      let hours = minutes / 60
-      let remainingMinutes = minutes % 60
-      return remainingMinutes == 0 ? "\(hours)h" : "\(hours)h \(remainingMinutes)m"
-    }
-
-    return "\(minutes)m"
   }
 }

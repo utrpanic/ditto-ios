@@ -7,7 +7,7 @@ final class TopPodcastsViewController: UIHostingController<TopPodcastsView>, Top
 
   init(interactor: TopPodcastsInteractable) {
     self.interactor = interactor
-    super.init(rootView: TopPodcastsView(store: interactor.store))
+    super.init(rootView: TopPodcastsView(store: interactor.store, interactor: interactor))
   }
 
   @available(*, unavailable)
