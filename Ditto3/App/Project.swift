@@ -34,6 +34,7 @@ let project = Project(
         .core(target: "Repository"),
         .core(target: "RepositoryImp"),
         .feature(target: "Bookmarks"),
+        .feature(target: "Episode"),
         .feature(target: "Main"),
         .feature(target: "New"),
         .feature(target: "Podcast"),

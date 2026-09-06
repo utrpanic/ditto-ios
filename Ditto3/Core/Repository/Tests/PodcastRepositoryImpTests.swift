@@ -186,4 +186,54 @@ struct PodcastRepositoryImpTests {
     #expect(podcasts.isEmpty)
     #expect(session.lastRequest?.url?.absoluteString == "https://rss.applemarketingtools.com/api/v2/us/podcasts/top/1/podcasts.json")
   }
+
+  @Test
+  func resolveFeedURLBuildsLookupRequestAndReturnsFeedURL() async throws {
+    let session = URLSessionMock()
+    session.stub(
+      data: Data(
+        """
+        {
+          "results": [
+            {
+              "collectionId": 42,
+              "collectionName": "Architecture Talks",
+              "artistName": "KeepCast",
+              "feedUrl": "https://example.com/feed.xml"
+            }
+          ]
+        }
+        """.utf8
+      ),
+      response: makeHTTPURLResponse(url: "https://itunes.apple.com/lookup", statusCode: 200)
+    )
+    let repository = PodcastRepositoryImp(session: session)
+
+    let feedURL = try await repository.resolveFeedURL(podcastID: PodcastID(42))
+
+    #expect(feedURL == URL(string: "https://example.com/feed.xml"))
+    #expect(session.lastRequest?.httpMethod == "GET")
+    #expect(session.lastRequest?.url?.host == "itunes.apple.com")
+    #expect(session.lastRequest?.url?.path == "/lookup")
+    let queryItems = URLComponents(
+      url: try #require(session.lastRequest?.url),
+      resolvingAgainstBaseURL: false
+    )?.queryItems
+    #expect(queryItems?.first(where: { $0.name == "id" })?.value == "42")
+    #expect(queryItems?.first(where: { $0.name == "entity" })?.value == "podcast")
+  }
+
+  @Test
+  func resolveFeedURLThrowsWhenLookupHasNoFeedURL() async {
+    let session = URLSessionMock()
+    session.stub(
+      data: Data(#"{"results":[]}"#.utf8),
+      response: makeHTTPURLResponse(url: "https://itunes.apple.com/lookup", statusCode: 200)
+    )
+    let repository = PodcastRepositoryImp(session: session)
+
+    await #expect(throws: PodcastRepositoryImpError.self) {
+      _ = try await repository.resolveFeedURL(podcastID: PodcastID(42))
+    }
+  }
 }

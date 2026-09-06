@@ -50,18 +50,20 @@ private struct Dependency: SearchDependency {
   let podcastRepository: PodcastRepository = RepositoryStub()
   let podcastBuilder: PodcastBuildable
 
+  @MainActor
   init(
-    podcastBuilder: PodcastBuildable = PodcastBuilder(dependency: PodcastDependencyStub())
+    podcastBuilder: PodcastBuildable? = nil
   ) {
-    self.podcastBuilder = podcastBuilder
+    self.podcastBuilder = podcastBuilder ?? PodcastBuilderStub()
   }
 }
-
-private struct PodcastDependencyStub: PodcastDependency {}
 
 private struct RepositoryStub: PodcastRepository {
   func fetchTopPodcasts(limit: Int) async throws -> [Podcast] { [] }
   func searchPodcasts(query: String) async throws -> [Podcast] { [] }
+  func resolveFeedURL(podcastID: PodcastID) async throws -> URL {
+    URL(string: "https://example.com/feed.xml")!
+  }
 }
 
 @MainActor
@@ -85,6 +87,13 @@ private final class PodcastBuilderSpy: PodcastBuildable {
   func build(podcast: Podcast, listener: PodcastListener?) -> ViewControllable {
     builtPodcast = podcast
     return destination
+  }
+}
+
+@MainActor
+private final class PodcastBuilderStub: PodcastBuildable {
+  func build(podcast: Podcast, listener: PodcastListener?) -> ViewControllable {
+    UIViewController()
   }
 }
 

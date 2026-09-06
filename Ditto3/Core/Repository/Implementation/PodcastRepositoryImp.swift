@@ -54,6 +54,30 @@ public final class PodcastRepositoryImp: PodcastRepository {
     return payload.feed.results.compactMap { $0.toDomain() }
   }
 
+  public func resolveFeedURL(podcastID: PodcastID) async throws -> URL {
+    var components = URLComponents(string: "https://itunes.apple.com/lookup")
+    components?.queryItems = [
+      .init(name: "id", value: String(podcastID.value)),
+      .init(name: "entity", value: "podcast"),
+    ]
+
+    guard let url = components?.url else {
+      throw PodcastRepositoryImpError.invalidURL
+    }
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "GET"
+
+    let (data, response) = try await session.data(for: request)
+    try validate(response: response)
+
+    let payload = try JSONDecoder().decode(SearchResponse.self, from: data)
+    guard let feedURL = payload.results.lazy.compactMap(\.feedUrl).first else {
+      throw PodcastRepositoryImpError.feedURLNotFound
+    }
+    return feedURL
+  }
+
   private func validate(response: URLResponse) throws {
     guard let httpResponse = response as? HTTPURLResponse else { return }
     guard (200 ..< 300).contains(httpResponse.statusCode) else {
@@ -65,6 +89,7 @@ public final class PodcastRepositoryImp: PodcastRepository {
 enum PodcastRepositoryImpError: Error {
   case invalidURL
   case httpStatus(Int)
+  case feedURLNotFound
 }
 
 private struct SearchResponse: Decodable {

@@ -1,4 +1,5 @@
 import Bookmarks
+import Episode
 import Main
 import New
 import Platform
@@ -11,23 +12,28 @@ import UIKit
 
 typealias Dependencies = MainDependency
 & BookmarksDependency
+& EpisodeDependency
 & NewDependency
+& PodcastDependency
 & SearchDependency
 & TopPodcastsDependency
 
 final class AppComponent: Dependencies {
   let podcastRepository: PodcastRepository
+  let episodeRepository: EpisodeRepository
 
   var mainBuilder: MainBuildable { MainBuilder(dependency: self) }
   var topPodcastsBuilder: TopPodcastsBuildable { TopPodcastsBuilder(dependency: self) }
   var newBuilder: NewBuildable { NewBuilder(dependency: self) }
   var bookmarksBuilder: BookmarksBuildable { BookmarksBuilder(dependency: self) }
   var searchBuilder: SearchBuildable { SearchBuilder(dependency: self) }
-  var podcastBuilder: PodcastBuildable { PodcastBuilder(dependency: PodcastComponent()) }
+  var podcastBuilder: PodcastBuildable { PodcastBuilder(dependency: self) }
+  var episodeBuilder: EpisodeBuildable { EpisodeBuilder(dependency: self) }
 
   init() {
     let session = URLSession.shared
     podcastRepository = PodcastRepositoryImp(session: session)
+    episodeRepository = EpisodeRepositoryImp(session: session)
   }
 
   @MainActor
@@ -35,5 +41,3 @@ final class AppComponent: Dependencies {
     mainBuilder.build(listener: nil).ui
   }
 }
-
-private struct PodcastComponent: PodcastDependency {}

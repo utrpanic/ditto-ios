@@ -92,14 +92,17 @@ let project = Project(
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
+        .target(name: "Episode"),
       ]
     ),
     .featureUnitTestsTarget(
       name: "PodcastTests",
       sourcePath: "Podcast/Tests",
       dependencies: [
+        .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
+        .target(name: "Episode"),
         .target(name: "Podcast"),
       ]
     ),
