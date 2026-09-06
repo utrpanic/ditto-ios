@@ -1,4 +1,3 @@
-import Combine
 import Entity
 import Repository
 import RIBsLite
@@ -11,22 +10,14 @@ enum SearchAction {
 
 @MainActor
 protocol SearchInteractable: AnyObject {
-  var store: SearchStateStore { get }
+  var store: StateStore<SearchState> { get }
   func sendAction(_ action: SearchAction)
-}
-
-final class SearchStateStore: ObservableObject {
-  @Published fileprivate(set) var state: SearchState
-
-  init(initialState: SearchState) {
-    self.state = initialState
-  }
 }
 
 @MainActor
 final class SearchInteractor: Interactor, SearchInteractable {
   private let dependency: SearchDependency
-  let store: SearchStateStore
+  let store: StateStore<SearchState>
   var router: SearchRouting?
   weak var listener: SearchListener?
 
@@ -34,7 +25,7 @@ final class SearchInteractor: Interactor, SearchInteractable {
 
   init(dependency: SearchDependency) {
     self.dependency = dependency
-    self.store = SearchStateStore(initialState: .idle)
+    self.store = StateStore(.idle)
     super.init()
   }
 

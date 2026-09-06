@@ -1,4 +1,3 @@
-import Combine
 import Entity
 import Podcast
 import Repository
@@ -11,7 +10,7 @@ enum TopPodcastsAction {
 
 @MainActor
 protocol TopPodcastsInteractable: AnyObject {
-  var store: TopPodcastsStateStore { get }
+  var store: StateStore<TopPodcastsState> { get }
   func sendAction(_ action: TopPodcastsAction)
 }
 
@@ -20,15 +19,10 @@ public protocol TopPodcastsDependency {
   var podcastBuilder: PodcastBuildable { get }
 }
 
-final class TopPodcastsStateStore: ObservableObject {
-  @Published fileprivate(set) var state: TopPodcastsState
-  init(initialState: TopPodcastsState) { self.state = initialState }
-}
-
 @MainActor
 final class TopPodcastsInteractor: Interactor, TopPodcastsInteractable {
   private let dependency: TopPodcastsDependency
-  let store: TopPodcastsStateStore
+  let store: StateStore<TopPodcastsState>
   var router: TopPodcastsRouting?
   weak var listener: TopPodcastsListener?
   
@@ -36,7 +30,7 @@ final class TopPodcastsInteractor: Interactor, TopPodcastsInteractable {
 
   init(dependency: TopPodcastsDependency) {
     self.dependency = dependency
-    self.store = TopPodcastsStateStore(initialState: .none)
+    self.store = StateStore(.none)
     super.init()
   }
 

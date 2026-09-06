@@ -2,20 +2,15 @@ import Entity
 import SwiftUI
 
 struct TopPodcastsView: View {
-  @ObservedObject var store: TopPodcastsStateStore
-  private let interactor: TopPodcastsInteractable
+  let state: TopPodcastsState
+  let sendAction: (TopPodcastsAction) -> Void
   private let title = "TopPodcasts"
-
-  init(store: TopPodcastsStateStore, interactor: TopPodcastsInteractable) {
-    self.store = store
-    self.interactor = interactor
-  }
 
   var body: some View {
     ScrollView {
       LazyVStack(spacing: 0) {
         header
-        switch store.state {
+        switch state {
         case .none, .loading:
           loadingSection
         case .loaded(let podcasts):
@@ -38,7 +33,7 @@ struct TopPodcastsView: View {
     } else {
       ForEach(Array(podcasts.enumerated()), id: \.element.id) { index, podcast in
         Button {
-          interactor.sendAction(.selectPodcast(podcast))
+          sendAction(.selectPodcast(podcast))
         } label: {
           PodcastRowView(
             podcast: podcast,

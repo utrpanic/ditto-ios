@@ -1,4 +1,3 @@
-import Combine
 import TopPodcasts
 import New
 import Bookmarks
@@ -9,21 +8,16 @@ enum MainAction {
   case selectTab(MainTab)
 }
 
-final class MainStateStore: ObservableObject {
-  @Published fileprivate(set) var state: MainState
-  init(initialState: MainState) { self.state = initialState }
-}
-
 @MainActor
 final class MainInteractor: Interactor, MainInteractable, TopPodcastsListener, NewListener, BookmarksListener, SearchListener {
   private let dependency: MainDependency
-  let store: MainStateStore
+  let store: StateStore<MainState>
   var router: MainRouting?
   weak var listener: MainListener?
 
   init(dependency: MainDependency) {
     self.dependency = dependency
-    self.store = MainStateStore(initialState: MainState())
+    self.store = StateStore(MainState())
     super.init()
   }
 

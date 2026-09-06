@@ -1,13 +1,16 @@
+import RIBsLite
 import SwiftUI
 import UIKit
 
 @MainActor
-final class EpisodeViewController: UIHostingController<EpisodeView>, EpisodeControllable {
+final class EpisodeViewController: UIHostingController<StateReader<EpisodeState, EpisodeView>>, EpisodeControllable {
   let interactor: EpisodeInteractable
 
   init(interactor: EpisodeInteractable) {
     self.interactor = interactor
-    super.init(rootView: EpisodeView(store: interactor.store))
+    super.init(rootView: StateReader(store: interactor.store) { state in
+      EpisodeView(state: state)
+    })
   }
 
   @available(*, unavailable)

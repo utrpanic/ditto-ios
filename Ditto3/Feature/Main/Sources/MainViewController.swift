@@ -4,7 +4,7 @@ import UIKit
 
 @MainActor
 protocol MainInteractable: AnyObject {
-  var store: MainStateStore { get }
+  var store: StateStore<MainState> { get }
   func sendAction(_ action: MainAction)
 }
 

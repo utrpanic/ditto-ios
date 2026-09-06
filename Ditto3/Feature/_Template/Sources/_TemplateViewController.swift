@@ -1,13 +1,16 @@
+import RIBsLite
 import SwiftUI
 import UIKit
 
 @MainActor
-final class _TemplateViewController: UIHostingController<AnyView>, _TemplatePresentable {
-  private let retainables: [AnyObject]
+final class _TemplateViewController: UIHostingController<StateReader<_TemplateState, _TemplateView>>, _TemplatePresentable {
+  private let interactor: _TemplateInteractable
 
-  init<Content: View>(rootView: Content, retainables: [AnyObject] = []) {
-    self.retainables = retainables
-    super.init(rootView: AnyView(rootView))
+  init(interactor: _TemplateInteractable) {
+    self.interactor = interactor
+    super.init(rootView: StateReader(store: interactor.store) { state in
+      _TemplateView(state: state, sendAction: interactor.sendAction)
+    })
   }
 
   @available(*, unavailable)

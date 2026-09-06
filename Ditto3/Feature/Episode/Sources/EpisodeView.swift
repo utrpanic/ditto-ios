@@ -2,7 +2,7 @@ import Entity
 import SwiftUI
 
 struct EpisodeView: View {
-  @ObservedObject var store: EpisodeStateStore
+  let state: EpisodeState
 
   var body: some View {
     ScrollView {
@@ -30,7 +30,7 @@ struct EpisodeView: View {
   }
 
   private var episode: Episode {
-    store.state.episode
+    state.episode
   }
 
   private var artwork: some View {

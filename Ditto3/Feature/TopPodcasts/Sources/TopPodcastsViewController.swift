@@ -1,13 +1,16 @@
+import RIBsLite
 import SwiftUI
 import UIKit
 
 @MainActor
-final class TopPodcastsViewController: UIHostingController<TopPodcastsView>, TopPodcastsControllable {
+final class TopPodcastsViewController: UIHostingController<StateReader<TopPodcastsState, TopPodcastsView>>, TopPodcastsControllable {
   private let interactor: TopPodcastsInteractable
 
   init(interactor: TopPodcastsInteractable) {
     self.interactor = interactor
-    super.init(rootView: TopPodcastsView(store: interactor.store, interactor: interactor))
+    super.init(rootView: StateReader(store: interactor.store) { state in
+      TopPodcastsView(state: state, sendAction: interactor.sendAction)
+    })
   }
 
   @available(*, unavailable)

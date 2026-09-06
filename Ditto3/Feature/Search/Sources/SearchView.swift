@@ -2,21 +2,16 @@ import Entity
 import SwiftUI
 
 struct SearchView: View {
-  @ObservedObject var store: SearchStateStore
-  private let interactor: SearchInteractable
+  let state: SearchState
+  let sendAction: (SearchAction) -> Void
   @State private var query = ""
-
-  init(store: SearchStateStore, interactor: SearchInteractable) {
-    self.store = store
-    self.interactor = interactor
-  }
 
   var body: some View {
     ScrollView {
       LazyVStack(spacing: 0) {
         header
 
-        switch store.state {
+        switch state {
         case .idle:
           idleSection
         case .loading(let query):
@@ -34,11 +29,11 @@ struct SearchView: View {
     .background(Color(uiColor: .systemBackground))
     .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search podcasts")
     .onSubmit(of: .search) {
-      interactor.sendAction(.search(query))
+      sendAction(.search(query))
     }
     .onChange(of: query) { _, newValue in
       if newValue.isEmpty {
-        interactor.sendAction(.clear)
+        sendAction(.clear)
       }
     }
   }
@@ -50,7 +45,7 @@ struct SearchView: View {
     } else {
       ForEach(Array(podcasts.enumerated()), id: \.element.id) { index, podcast in
         Button {
-          interactor.sendAction(.selectPodcast(podcast))
+          sendAction(.selectPodcast(podcast))
         } label: {
           SearchPodcastRowView(podcast: podcast)
         }
@@ -130,7 +125,7 @@ struct SearchView: View {
         .multilineTextAlignment(.center)
 
       Button("Retry") {
-        interactor.sendAction(.search(query))
+        sendAction(.search(query))
       }
       .buttonStyle(.borderedProminent)
     }

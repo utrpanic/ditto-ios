@@ -1,13 +1,16 @@
+import RIBsLite
 import SwiftUI
 import UIKit
 
 @MainActor
-final class SearchViewController: UIHostingController<SearchView>, SearchControllable {
+final class SearchViewController: UIHostingController<StateReader<SearchState, SearchView>>, SearchControllable {
   private let interactor: SearchInteractable
 
   init(interactor: SearchInteractable) {
     self.interactor = interactor
-    super.init(rootView: SearchView(store: interactor.store, interactor: interactor))
+    super.init(rootView: StateReader(store: interactor.store) { state in
+      SearchView(state: state, sendAction: interactor.sendAction)
+    })
   }
 
   @available(*, unavailable)
