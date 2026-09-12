@@ -11,6 +11,10 @@ public final class UserDefaultsMock: UserDefaultsProtocol, @unchecked Sendable {
     storage[key] = value
   }
 
+  public func stubData(_ value: Data?, forKey key: String) {
+    storage[key] = value
+  }
+
   public func setReadCount(forKey key: String) -> Int {
     setReadCounts[key, default: 0]
   }
@@ -19,12 +23,20 @@ public final class UserDefaultsMock: UserDefaultsProtocol, @unchecked Sendable {
     storage[key] as? Set<T>
   }
 
+  public func persistedData(forKey key: String) -> Data? {
+    storage[key] as? Data
+  }
+
   public func integer(forKey key: String) -> Int {
     storage[key] as? Int ?? 0
   }
 
   public func string(forKey key: String) -> String? {
     storage[key] as? String
+  }
+
+  public func data(forKey key: String) -> Data? {
+    storage[key] as? Data
   }
 
   public func array<T>(forKey key: String) -> [T]? {
@@ -41,6 +53,10 @@ public final class UserDefaultsMock: UserDefaultsProtocol, @unchecked Sendable {
   }
 
   public func set(value: String?, forKey key: String) {
+    storage[key] = value
+  }
+
+  public func set(value: Data?, forKey key: String) {
     storage[key] = value
   }
 

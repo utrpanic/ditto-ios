@@ -13,11 +13,13 @@ struct UserDefaultsProtocolImpTests {
 
     userDefaults.set(value: 42, forKey: "int")
     userDefaults.set(value: "Jack", forKey: "string")
+    userDefaults.set(value: Data("KeepCast".utf8), forKey: "data")
     userDefaults.set(value: [1, 2], forKey: "array")
     userDefaults.set(value: Set([1, 2, 3]), forKey: "set")
 
     #expect(userDefaults.integer(forKey: "int") == 42)
     #expect(userDefaults.string(forKey: "string") == "Jack")
+    #expect(userDefaults.data(forKey: "data") == Data("KeepCast".utf8))
 
     let array: [Int]? = userDefaults.array(forKey: "array")
     #expect(array == [1, 2])
