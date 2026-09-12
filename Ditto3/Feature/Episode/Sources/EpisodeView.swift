@@ -3,6 +3,7 @@ import SwiftUI
 
 struct EpisodeView: View {
   let state: EpisodeState
+  let sendAction: (EpisodeAction) -> Void
 
   var body: some View {
     ScrollView {
@@ -12,6 +13,7 @@ struct EpisodeView: View {
 
         titleSection
         metadataSection
+        keepSection
 
         if let description = episode.description, !description.isEmpty {
           Divider()
@@ -27,6 +29,72 @@ struct EpisodeView: View {
     .background(Color(uiColor: .systemBackground))
     .navigationTitle("Episode")
     .navigationBarTitleDisplayMode(.inline)
+  }
+
+  private var keepSection: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      Button {
+        sendAction(.toggleKeep)
+      } label: {
+        HStack(spacing: 10) {
+          keepIcon
+          Text(keepButtonTitle)
+            .font(.headline)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 13)
+        .foregroundStyle(keepForegroundColor)
+        .background(keepBackgroundColor)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      }
+      .buttonStyle(.plain)
+      .disabled(state.isKept == nil || state.isUpdatingKeep)
+
+      if let message = state.keepErrorMessage {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+          Text(message)
+            .font(.caption)
+            .foregroundStyle(.red)
+
+          Spacer()
+
+          Button("Retry") {
+            sendAction(.retryKeepState)
+          }
+          .font(.caption.weight(.semibold))
+        }
+      }
+    }
+  }
+
+  @ViewBuilder
+  private var keepIcon: some View {
+    if state.isUpdatingKeep || (state.isKept == nil && state.keepErrorMessage == nil) {
+      ProgressView()
+        .tint(keepForegroundColor)
+    } else {
+      Image(systemName: keepIconName)
+    }
+  }
+
+  private var keepButtonTitle: String {
+    if state.isKept == nil {
+      return state.keepErrorMessage == nil ? "Loading Keep Status" : "Keep Unavailable"
+    }
+    return state.isKept == true ? "Kept" : "Keep"
+  }
+
+  private var keepIconName: String {
+    if state.isKept == nil { return "exclamationmark.triangle" }
+    return state.isKept == true ? "bookmark.fill" : "bookmark"
+  }
+
+  private var keepForegroundColor: Color {
+    state.isKept == true ? .white : .accentColor
+  }
+
+  private var keepBackgroundColor: Color {
+    state.isKept == true ? .accentColor : Color(uiColor: .secondarySystemBackground)
   }
 
   private var episode: Episode {

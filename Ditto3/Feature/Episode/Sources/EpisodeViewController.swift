@@ -9,7 +9,7 @@ final class EpisodeViewController: UIHostingController<StateReader<EpisodeState,
   init(interactor: EpisodeInteractable) {
     self.interactor = interactor
     super.init(rootView: StateReader(store: interactor.store) { state in
-      EpisodeView(state: state)
+      EpisodeView(state: state, sendAction: interactor.sendAction)
     })
   }
 
