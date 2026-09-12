@@ -10,6 +10,34 @@ public final class EpisodeRepositoryImp: EpisodeRepository {
     self.session = session
   }
 
+  public func searchEpisodes(query: String) async throws -> [Episode] {
+    let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmedQuery.isEmpty else { return [] }
+
+    var components = URLComponents(string: "https://itunes.apple.com/search")
+    components?.queryItems = [
+      .init(name: "term", value: trimmedQuery),
+      .init(name: "media", value: "podcast"),
+      .init(name: "entity", value: "podcastEpisode"),
+      .init(name: "limit", value: "50"),
+    ]
+
+    guard let url = components?.url else {
+      throw EpisodeRepositoryImpError.invalidURL
+    }
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "GET"
+
+    let (data, response) = try await session.data(for: request)
+    try validate(response: response)
+
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .iso8601
+    let payload = try decoder.decode(EpisodeSearchResponse.self, from: data)
+    return payload.results.compactMap { $0.toDomain() }
+  }
+
   public func fetchEpisodes(
     podcast: Podcast,
     feedURL: URL,
@@ -21,10 +49,7 @@ public final class EpisodeRepositoryImp: EpisodeRepository {
     request.httpMethod = "GET"
 
     let (data, response) = try await session.data(for: request)
-    if let httpResponse = response as? HTTPURLResponse,
-       !(200 ..< 300).contains(httpResponse.statusCode) {
-      throw EpisodeRepositoryImpError.httpStatus(httpResponse.statusCode)
-    }
+    try validate(response: response)
 
     let episodes = try PodcastRSSParser(
       podcast: podcast,
@@ -34,11 +59,71 @@ public final class EpisodeRepositoryImp: EpisodeRepository {
     guard let limit else { return episodes }
     return Array(episodes.prefix(limit))
   }
+
+  private func validate(response: URLResponse) throws {
+    guard let httpResponse = response as? HTTPURLResponse else { return }
+    guard (200 ..< 300).contains(httpResponse.statusCode) else {
+      throw EpisodeRepositoryImpError.httpStatus(httpResponse.statusCode)
+    }
+  }
 }
 
 enum EpisodeRepositoryImpError: Error {
+  case invalidURL
   case httpStatus(Int)
   case invalidFeed
+}
+
+private struct EpisodeSearchResponse: Decodable {
+  let results: [Result]
+
+  struct Result: Decodable {
+    let trackId: Int?
+    let collectionId: Int?
+    let collectionName: String?
+    let trackName: String?
+    let artistName: String?
+    let artworkUrl600: URL?
+    let artworkUrl100: URL?
+    let feedUrl: URL?
+    let episodeUrl: URL?
+    let previewUrl: URL?
+    let trackViewUrl: URL?
+    let description: String?
+    let shortDescription: String?
+    let releaseDate: Date?
+    let trackTimeMillis: Double?
+
+    func toDomain() -> Episode? {
+      guard let trackId,
+            let collectionName,
+            let trackName,
+            let feedUrl else {
+        return nil
+      }
+
+      return Episode(
+        id: EpisodeID(String(trackId)),
+        podcastID: collectionId.map(PodcastID.init),
+        podcastTitle: collectionName,
+        title: trackName,
+        feedURL: feedUrl,
+        author: artistName,
+        artworkURL: artworkUrl600 ?? artworkUrl100,
+        audioURL: episodeUrl ?? previewUrl,
+        pageURL: trackViewUrl,
+        description: firstNonempty(description, shortDescription),
+        publishedAt: releaseDate,
+        duration: trackTimeMillis.map { $0 / 1_000 }
+      )
+    }
+
+    private func firstNonempty(_ values: String?...) -> String? {
+      values
+        .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+        .first(where: { !$0.isEmpty })
+    }
+  }
 }
 
 private final class PodcastRSSParser: NSObject, XMLParserDelegate {

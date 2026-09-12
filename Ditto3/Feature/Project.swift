@@ -113,6 +113,7 @@ let project = Project(
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
+        .target(name: "Episode"),
         .target(name: "Podcast"),
       ]
     ),
@@ -123,6 +124,7 @@ let project = Project(
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
+        .target(name: "Episode"),
         .target(name: "Podcast"),
         .target(name: "Search"),
       ]

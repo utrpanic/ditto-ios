@@ -1,10 +1,13 @@
+import Episode
 import Podcast
 import Repository
 import RIBsLite
 
 public protocol SearchDependency {
   var podcastRepository: PodcastRepository { get }
+  var episodeRepository: EpisodeRepository { get }
   var podcastBuilder: PodcastBuildable { get }
+  var episodeBuilder: EpisodeBuildable { get }
 }
 
 public final class SearchBuilder: SearchBuildable {
