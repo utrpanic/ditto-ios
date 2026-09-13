@@ -45,9 +45,49 @@ struct PodcastView: View {
         Text(podcast.author)
           .font(.headline)
           .foregroundStyle(.secondary)
+
+        followingButton
       }
       .frame(maxWidth: .infinity, alignment: .leading)
     }
+  }
+
+  private var followingButton: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Button {
+        sendAction(.toggleFollowing)
+      } label: {
+        HStack(spacing: 6) {
+          if state.isFollowing == nil || state.isUpdatingFollowing {
+            ProgressView()
+              .controlSize(.small)
+          } else {
+            Image(systemName: state.isFollowing == true ? "checkmark" : "plus")
+          }
+
+          Text(followingButtonTitle)
+        }
+      }
+      .buttonStyle(.borderedProminent)
+      .tint(state.isFollowing == true ? .secondary : .accentColor)
+      .disabled(state.isFollowing == nil || state.isUpdatingFollowing)
+
+      if let message = state.followingErrorMessage {
+        Text(message)
+          .font(.caption)
+          .foregroundStyle(.red)
+
+        Button("Retry") {
+          sendAction(.retryFollowing)
+        }
+        .font(.caption.weight(.semibold))
+      }
+    }
+  }
+
+  private var followingButtonTitle: String {
+    guard let isFollowing = state.isFollowing else { return "Loading" }
+    return isFollowing ? "Following" : "Follow"
   }
 
   private var artwork: some View {
@@ -75,16 +115,16 @@ struct PodcastView: View {
       Text("Latest Episodes")
         .font(.title2.bold())
 
-      switch state {
+      switch state.episodes {
       case .loading:
         loadingSection
-      case .loaded(_, let episodes):
+      case .loaded(let episodes):
         if episodes.isEmpty {
           emptySection
         } else {
           episodeRows(episodes)
         }
-      case .failed(_, let message):
+      case .failed(let message):
         errorSection(message: message)
       }
     }
@@ -122,7 +162,7 @@ struct PodcastView: View {
         .foregroundStyle(.secondary)
 
       Button("Retry") {
-        sendAction(.retry)
+        sendAction(.retryEpisodes)
       }
       .buttonStyle(.borderedProminent)
     }

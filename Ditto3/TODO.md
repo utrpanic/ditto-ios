@@ -10,7 +10,7 @@
    - `FollowingRepository`가 전체 Podcast snapshot과 `followedAt`을 저장하게 한다.
    - versioned JSON persistence와 change stream을 구현한다.
    - follow, unfollow, idempotency, persistence를 테스트한다.
-5. Podcast Follow UI를 구현한다.
+5. Podcast Follow UI를 구현한다. ✅
    - `FollowingRepository`를 Podcast feature에 주입한다.
    - Follow/Unfollow action과 상태를 추가한다.
    - optimistic update와 failure rollback을 구현한다.

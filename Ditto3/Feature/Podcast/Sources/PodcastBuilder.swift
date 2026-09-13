@@ -6,6 +6,7 @@ import RIBsLite
 public protocol PodcastDependency {
   var podcastRepository: PodcastRepository { get }
   var episodeRepository: EpisodeRepository { get }
+  var followingRepository: FollowingRepository { get }
   var episodeBuilder: EpisodeBuildable { get }
 }
 

@@ -1,14 +1,15 @@
 import Entity
 
-enum PodcastState: Equatable {
-  case loading(podcast: Podcast)
-  case loaded(podcast: Podcast, episodes: [Episode])
-  case failed(podcast: Podcast, message: String)
+struct PodcastState: Equatable {
+  let podcast: Podcast
+  var episodes: PodcastEpisodesState = .loading
+  var isFollowing: Bool?
+  var isUpdatingFollowing = false
+  var followingErrorMessage: String?
+}
 
-  var podcast: Podcast {
-    switch self {
-    case .loading(let podcast), .loaded(let podcast, _), .failed(let podcast, _):
-      podcast
-    }
-  }
+enum PodcastEpisodesState: Equatable {
+  case loading
+  case loaded([Episode])
+  case failed(message: String)
 }
