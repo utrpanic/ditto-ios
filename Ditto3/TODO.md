@@ -25,7 +25,7 @@
    - 최대 20개를 표시한다.
    - partial failure와 전체 failure를 구분한다.
    - Episode feature로 routing한다.
-8. Playback Foundation을 구현한다.
+8. Playback Foundation을 구현한다. ✅
    - background playback과 잠금 화면 제어의 범위를 확정한다.
    - `PlaybackControlling`과 `PlaybackState`를 정의한다.
    - AVPlayer 기반 Platform 구현을 추가한다.

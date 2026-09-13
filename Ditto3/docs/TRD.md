@@ -262,6 +262,13 @@ public protocol PlaybackControlling: AnyObject {
 
 Player Interactor는 `PlaybackControlling`과 persistence repository를 조합한다. Feature는 `AVPlayer`에 직접 의존하지 않는다.
 
+Playback foundation의 system integration 범위는 다음과 같다.
+
+- audio session은 `.playback` category와 `.spokenAudio` mode를 사용하고 background audio mode를 활성화한다.
+- 잠금 화면은 play, pause, playback position 변경, 15초 뒤로, 30초 앞으로를 지원한다.
+- Now Playing에는 Episode 제목, Podcast 제목, 전체 길이, 현재 위치, 재생 속도를 제공한다.
+- 원격 artwork 로딩, 명시적 download, persistent audio cache, guaranteed offline playback은 포함하지 않는다.
+
 ## 9. State Synchronization
 
 RIB listener는 child-to-parent navigation event와 완료 event에 사용한다. app-wide domain state를 listener chain으로 전달하지 않는다.

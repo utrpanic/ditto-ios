@@ -25,6 +25,9 @@ let project = Project(
             ],
           ],
           "UILaunchStoryboardName": .string("LaunchScreen"),
+          "UIBackgroundModes": .array([
+            .string("audio"),
+          ]),
         ]
       ),
       sources: ["Sources/**"],

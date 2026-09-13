@@ -18,6 +18,13 @@ let project = Project(
       ]
     ),
     .coreTarget(
+      name: "Playback",
+      sourcePath: "Playback/Interface",
+      dependencies: [
+        .target(name: "Entity"),
+      ]
+    ),
+    .coreTarget(
       name: "RepositoryImp",
       sourcePath: "Repository/Implementation",
       dependencies: [
@@ -54,6 +61,7 @@ let project = Project(
       buildAction: .buildAction(
         targets: [
           "Entity",
+          "Playback",
           "Repository",
           "RepositoryImp",
         ]
