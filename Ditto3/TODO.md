@@ -19,7 +19,7 @@
    - Follow한 Podcast 목록과 empty state를 표시한다.
    - Podcast feature로 routing한다.
    - Following change stream을 반영한다.
-7. Latest Feature를 구현한다.
+7. Latest Feature를 구현한다. ✅
    - Follow한 Podcast의 Episode를 병렬로 조회한다.
    - EpisodeID로 중복을 제거하고 `publishedAt` 내림차순으로 정렬한다.
    - 최대 20개를 표시한다.
