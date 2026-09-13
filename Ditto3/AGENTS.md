@@ -13,7 +13,7 @@
 - The project is organized with Tuist into `App`, `Architecture`, `Core`, `Feature`, and `Platform`.
 - Feature modules use the RIBsLite shape: `Buildable`, `Builder`, `Interactor`, `Router`, `ViewController`, and state/view files when needed.
 - For SwiftUI feature screens, wrap the SwiftUI view in a `UIHostingController` and keep it conforming to the feature controllable protocol.
-- Prefer existing feature patterns before introducing new abstractions. `TopPodcasts` is the reference for a data-loading SwiftUI feature.
+- Prefer existing feature patterns before introducing new abstractions. `Discover` is the reference for a data-loading SwiftUI feature.
 
 ## Repository Layer
 - Repository interfaces live under `Core/Repository/Interface`.

@@ -23,7 +23,7 @@ if [[ "$needs_default_scheme" == true ]]; then
 fi
 
 if [[ "$needs_default_destination" == true ]]; then
-  simulator_name="$(./script/find-simulator.sh)"
+  simulator_name="$(./scripts/find-simulator.sh)"
   build_args+=(-destination "platform=iOS Simulator,name=${simulator_name}")
 fi
 

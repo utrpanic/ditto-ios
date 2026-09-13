@@ -1,6 +1,6 @@
 import Entity
 
-enum TopPodcastsState {
+enum DiscoverState {
   case none
   case loading
   case loaded([Podcast])

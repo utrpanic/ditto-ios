@@ -38,7 +38,7 @@ struct SearchTests {
     let podcast = Podcast(
       id: PodcastID(42),
       title: "Architecture Talks",
-      author: "KeepCast"
+      author: "Ditto"
     )
     let interactor = SearchInteractor(dependency: Dependency())
     let router = RouterSpy()
@@ -68,7 +68,7 @@ struct SearchTests {
     let podcast = Podcast(
       id: PodcastID(42),
       title: "Architecture Talks",
-      author: "KeepCast"
+      author: "Ditto"
     )
     let destination = UIViewController()
     let podcastBuilder = PodcastBuilderSpy(destination: destination)

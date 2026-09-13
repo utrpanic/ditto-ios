@@ -1,10 +1,10 @@
 enum MainTab: Equatable {
-  case topPodcasts
-  case new
-  case bookmarks
+  case discover
+  case latest
+  case library
   case search
 }
 
 struct MainState: Equatable {
-  var selectedTab: MainTab = .topPodcasts
+  var selectedTab: MainTab = .discover
 }

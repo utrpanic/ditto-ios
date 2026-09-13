@@ -1,13 +1,13 @@
-import Bookmarks
-import New
+import Discover
+import Latest
+import Library
 import RIBsLite
 import Search
-import TopPodcasts
 
 public protocol MainDependency {
-  var topPodcastsBuilder: TopPodcastsBuildable { get }
-  var newBuilder: NewBuildable { get }
-  var bookmarksBuilder: BookmarksBuildable { get }
+  var discoverBuilder: DiscoverBuildable { get }
+  var latestBuilder: LatestBuildable { get }
+  var libraryBuilder: LibraryBuildable { get }
   var searchBuilder: SearchBuildable { get }
 }
 

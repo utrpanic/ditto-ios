@@ -3,32 +3,32 @@ import Podcast
 import Repository
 import RIBsLite
 
-enum TopPodcastsAction {
+enum DiscoverAction {
   case retry
   case selectPodcast(Podcast)
 }
 
 @MainActor
-protocol TopPodcastsInteractable: AnyObject {
-  var store: StateStore<TopPodcastsState> { get }
-  func sendAction(_ action: TopPodcastsAction)
+protocol DiscoverInteractable: AnyObject {
+  var store: StateStore<DiscoverState> { get }
+  func sendAction(_ action: DiscoverAction)
 }
 
-public protocol TopPodcastsDependency {
+public protocol DiscoverDependency {
   var podcastRepository: PodcastRepository { get }
   var podcastBuilder: PodcastBuildable { get }
 }
 
 @MainActor
-final class TopPodcastsInteractor: Interactor, TopPodcastsInteractable {
-  private let dependency: TopPodcastsDependency
-  let store: StateStore<TopPodcastsState>
-  var router: TopPodcastsRouting?
-  weak var listener: TopPodcastsListener?
+final class DiscoverInteractor: Interactor, DiscoverInteractable {
+  private let dependency: DiscoverDependency
+  let store: StateStore<DiscoverState>
+  var router: DiscoverRouting?
+  weak var listener: DiscoverListener?
   
   private let limit = 20
 
-  init(dependency: TopPodcastsDependency) {
+  init(dependency: DiscoverDependency) {
     self.dependency = dependency
     self.store = StateStore(.none)
     super.init()
@@ -37,22 +37,22 @@ final class TopPodcastsInteractor: Interactor, TopPodcastsInteractable {
   override func didBecomeActive() {
     guard case .none = store.state else { return }
     Task {
-      await fetchTopPodcasts()
+      await fetchPodcasts()
     }
   }
 
-  func sendAction(_ action: TopPodcastsAction) {
+  func sendAction(_ action: DiscoverAction) {
     switch action {
     case .retry:
       Task {
-        await fetchTopPodcasts()
+        await fetchPodcasts()
       }
     case .selectPodcast(let podcast):
       router?.routeToPodcast(podcast)
     }
   }
 
-  private func fetchTopPodcasts() async {
+  private func fetchPodcasts() async {
     store.state = .loading
     do {
       let items = try await dependency.podcastRepository.fetchTopPodcasts(limit: limit)

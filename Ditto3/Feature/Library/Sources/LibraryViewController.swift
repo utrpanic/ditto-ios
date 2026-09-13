@@ -1,7 +1,7 @@
 import UIKit
 
 @MainActor
-final class NewViewController: UIViewController {
+final class LibraryViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
 
@@ -9,7 +9,7 @@ final class NewViewController: UIViewController {
 
     let label = UILabel()
     label.translatesAutoresizingMaskIntoConstraints = false
-    label.text = "New"
+    label.text = "Library"
     label.font = .systemFont(ofSize: 28, weight: .semibold)
     label.textAlignment = .center
 

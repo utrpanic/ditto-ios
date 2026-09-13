@@ -58,7 +58,7 @@ private func makePodcast() -> Podcast {
   Podcast(
     id: PodcastID(42),
     title: "Architecture Talks",
-    author: "KeepCast",
+    author: "Ditto",
     feedURL: URL(string: "https://example.com/feed.xml")
   )
 }

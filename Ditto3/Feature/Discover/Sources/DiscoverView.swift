@@ -1,10 +1,10 @@
 import Entity
 import SwiftUI
 
-struct TopPodcastsView: View {
-  let state: TopPodcastsState
-  let sendAction: (TopPodcastsAction) -> Void
-  private let title = "TopPodcasts"
+struct DiscoverView: View {
+  let state: DiscoverState
+  let sendAction: (DiscoverAction) -> Void
+  private let title = "Top Podcasts"
 
   var body: some View {
     ScrollView {

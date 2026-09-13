@@ -198,7 +198,7 @@ struct PodcastRepositoryImpTests {
             {
               "collectionId": 42,
               "collectionName": "Architecture Talks",
-              "artistName": "KeepCast",
+              "artistName": "Ditto",
               "feedUrl": "https://example.com/feed.xml"
             }
           ]

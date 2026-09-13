@@ -1,64 +1,64 @@
-import Bookmarks
-import New
+import Discover
+import Latest
+import Library
 import RIBsLite
 import Search
-import TopPodcasts
 import UIKit
 
 @MainActor
 protocol MainViewControllable: ViewControllable {
-  func attachTopPodcastsTab(_ viewController: ViewControllable)
-  func attachNewTab(_ viewController: ViewControllable)
-  func attachBookmarksTab(_ viewController: ViewControllable)
+  func attachDiscoverTab(_ viewController: ViewControllable)
+  func attachLatestTab(_ viewController: ViewControllable)
+  func attachLibraryTab(_ viewController: ViewControllable)
   func attachSearchTab(_ viewController: ViewControllable)
 }
 
 @MainActor
 protocol MainRouting: Routing {
-  func attachTopPodcasts(listener: TopPodcastsListener?)
-  func attachNew(listener: NewListener?)
-  func attachBookmarks(listener: BookmarksListener?)
+  func attachDiscover(listener: DiscoverListener?)
+  func attachLatest(listener: LatestListener?)
+  func attachLibrary(listener: LibraryListener?)
   func attachSearch(listener: SearchListener?)
 }
 
 @MainActor
 final class MainRouter: Router<MainViewControllable>, MainRouting {
-  private let topPodcastsBuilder: TopPodcastsBuildable
-  private var topPodcastsViewController: ViewControllable?
-  private let newBuilder: NewBuildable
-  private var newViewController: ViewControllable?
-  private let bookmarksBuilder: BookmarksBuildable
-  private var bookmarksViewController: ViewControllable?
+  private let discoverBuilder: DiscoverBuildable
+  private var discoverViewController: ViewControllable?
+  private let latestBuilder: LatestBuildable
+  private var latestViewController: ViewControllable?
+  private let libraryBuilder: LibraryBuildable
+  private var libraryViewController: ViewControllable?
   private let searchBuilder: SearchBuildable
   private var searchViewController: ViewControllable?
 
   init(dependency: MainDependency, viewController: MainViewControllable) {
-    self.topPodcastsBuilder = dependency.topPodcastsBuilder
-    self.newBuilder = dependency.newBuilder
-    self.bookmarksBuilder = dependency.bookmarksBuilder
+    self.discoverBuilder = dependency.discoverBuilder
+    self.latestBuilder = dependency.latestBuilder
+    self.libraryBuilder = dependency.libraryBuilder
     self.searchBuilder = dependency.searchBuilder
     super.init(viewController: viewController)
   }
 
-  func attachTopPodcasts(listener: TopPodcastsListener?) {
-    guard topPodcastsViewController == nil else { return }
-    let viewController = topPodcastsBuilder.build(listener: listener)
-    topPodcastsViewController = viewController
-    self.viewController.attachTopPodcastsTab(viewController)
+  func attachDiscover(listener: DiscoverListener?) {
+    guard discoverViewController == nil else { return }
+    let viewController = discoverBuilder.build(listener: listener)
+    discoverViewController = viewController
+    self.viewController.attachDiscoverTab(viewController)
   }
 
-  func attachNew(listener: NewListener?) {
-    guard newViewController == nil else { return }
-    let viewController = newBuilder.build(listener: listener)
-    newViewController = viewController
-    self.viewController.attachNewTab(viewController)
+  func attachLatest(listener: LatestListener?) {
+    guard latestViewController == nil else { return }
+    let viewController = latestBuilder.build(listener: listener)
+    latestViewController = viewController
+    self.viewController.attachLatestTab(viewController)
   }
 
-  func attachBookmarks(listener: BookmarksListener?) {
-    guard bookmarksViewController == nil else { return }
-    let viewController = bookmarksBuilder.build(listener: listener)
-    bookmarksViewController = viewController
-    self.viewController.attachBookmarksTab(viewController)
+  func attachLibrary(listener: LibraryListener?) {
+    guard libraryViewController == nil else { return }
+    let viewController = libraryBuilder.build(listener: listener)
+    libraryViewController = viewController
+    self.viewController.attachLibraryTab(viewController)
   }
 
   func attachSearch(listener: SearchListener?) {

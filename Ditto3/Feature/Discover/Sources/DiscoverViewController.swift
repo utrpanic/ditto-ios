@@ -3,13 +3,13 @@ import SwiftUI
 import UIKit
 
 @MainActor
-final class TopPodcastsViewController: UIHostingController<StateReader<TopPodcastsState, TopPodcastsView>>, TopPodcastsControllable {
-  private let interactor: TopPodcastsInteractable
+final class DiscoverViewController: UIHostingController<StateReader<DiscoverState, DiscoverView>>, DiscoverControllable {
+  private let interactor: DiscoverInteractable
 
-  init(interactor: TopPodcastsInteractable) {
+  init(interactor: DiscoverInteractable) {
     self.interactor = interactor
     super.init(rootView: StateReader(store: interactor.store) { state in
-      TopPodcastsView(state: state, sendAction: interactor.sendAction)
+      DiscoverView(state: state, sendAction: interactor.sendAction)
     })
   }
 

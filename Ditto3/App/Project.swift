@@ -33,13 +33,13 @@ let project = Project(
         .platform(target: "Platform"),
         .core(target: "Repository"),
         .core(target: "RepositoryImp"),
-        .feature(target: "Bookmarks"),
+        .feature(target: "Discover"),
         .feature(target: "Episode"),
         .feature(target: "Main"),
-        .feature(target: "New"),
+        .feature(target: "Latest"),
+        .feature(target: "Library"),
         .feature(target: "Podcast"),
         .feature(target: "Search"),
-        .feature(target: "TopPodcasts"),
       ]
     ),
     .target(

@@ -10,17 +10,17 @@ protocol MainInteractable: AnyObject {
 
 final class MainViewController: UITabBarController, MainViewControllable, UITabBarControllerDelegate {
   private enum TabIdentifier {
-    static let topPodcasts = "main.top-podcasts"
-    static let new = "main.new"
-    static let bookmarks = "main.bookmarks"
+    static let discover = "main.discover"
+    static let latest = "main.latest"
+    static let library = "main.library"
     static let search = "main.search"
   }
 
   private let interactor: MainInteractable
   
-  private var topPodcastsTab: UITab?
-  private var newTab: UITab?
-  private var bookmarksTab: UITab?
+  private var discoverTab: UITab?
+  private var latestTab: UITab?
+  private var libraryTab: UITab?
   private var searchTab: UISearchTab?
   
   private var cancellables = Set<AnyCancellable>()
@@ -58,12 +58,12 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
 
   private func selectTab(_ tab: MainTab) {
     let selectedTab: UITab? = switch tab {
-    case .topPodcasts:
-      topPodcastsTab
-    case .new:
-      newTab
-    case .bookmarks:
-      bookmarksTab
+    case .discover:
+      discoverTab
+    case .latest:
+      latestTab
+    case .library:
+      libraryTab
     case .search:
       searchTab
     }
@@ -73,39 +73,39 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
 
   // MARK: - MainViewControllable
 
-  func attachTopPodcastsTab(_ viewController: ViewControllable) {
+  func attachDiscoverTab(_ viewController: ViewControllable) {
     let navigationController = UINavigationController(rootViewController: viewController.ui)
     let tab = UITab(
-      title: "Top",
+      title: "Discover",
       image: UIImage(systemName: "music.note.list"),
-      identifier: String(describing: MainTab.topPodcasts),
+      identifier: TabIdentifier.discover,
       viewControllerProvider: { _ in navigationController }
     )
-    topPodcastsTab = tab
+    discoverTab = tab
     appendTab(tab)
   }
 
-  func attachNewTab(_ viewController: ViewControllable) {
+  func attachLatestTab(_ viewController: ViewControllable) {
     let navigationController = UINavigationController(rootViewController: viewController.ui)
     let tab = UITab(
-      title: "New",
+      title: "Latest",
       image: UIImage(systemName: "sparkles"),
-      identifier: String(describing: MainTab.new),
+      identifier: TabIdentifier.latest,
       viewControllerProvider: { _ in navigationController }
     )
-    newTab = tab
+    latestTab = tab
     appendTab(tab)
   }
 
-  func attachBookmarksTab(_ viewController: ViewControllable) {
+  func attachLibraryTab(_ viewController: ViewControllable) {
     let navigationController = UINavigationController(rootViewController: viewController.ui)
     let tab = UITab(
-      title: "Bookmarks",
-      image: UIImage(systemName: "bookmark"),
-      identifier: String(describing: MainTab.bookmarks),
+      title: "Library",
+      image: UIImage(systemName: "square.stack"),
+      identifier: TabIdentifier.library,
       viewControllerProvider: { _ in navigationController }
     )
-    bookmarksTab = tab
+    libraryTab = tab
     appendTab(tab)
   }
 
@@ -126,12 +126,12 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
 
   func tabBarController(_ tabBarController: UITabBarController, didSelectTab selectedTab: UITab, previousTab: UITab?) {
     let tab: MainTab?
-    if selectedTab === topPodcastsTab {
-      tab = .topPodcasts
-    } else if selectedTab === newTab {
-      tab = .new
-    } else if selectedTab === bookmarksTab {
-      tab = .bookmarks
+    if selectedTab === discoverTab {
+      tab = .discover
+    } else if selectedTab === latestTab {
+      tab = .latest
+    } else if selectedTab === libraryTab {
+      tab = .library
     } else if selectedTab === searchTab {
       tab = .search
     } else {

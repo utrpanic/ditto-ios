@@ -1,9 +1,9 @@
 import Entity
 import Repository
-@testable import New
+@testable import Latest
 import Testing
 
-struct NewTests {
+struct LatestTests {
   @Test func example() async throws {
     // Write your test here and use APIs like `#expect(...)` to check expected conditions.
   }

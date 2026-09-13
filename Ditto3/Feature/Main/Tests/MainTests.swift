@@ -1,12 +1,12 @@
 import Entity
 import Repository
-import Bookmarks
+import Discover
+import Latest
+import Library
 @testable import Main
-import New
 import RIBsLite
 import Search
 import Testing
-import TopPodcasts
 import UIKit
 
 struct MainTests {
@@ -21,29 +21,29 @@ struct MainTests {
 }
 
 private struct MainDependencyStub: MainDependency {
-  let topPodcastsBuilder: TopPodcastsBuildable = TopPodcastsBuildableStub()
-  let newBuilder: NewBuildable = NewBuildableStub()
-  let bookmarksBuilder: BookmarksBuildable = BookmarksBuildableStub()
+  let discoverBuilder: DiscoverBuildable = DiscoverBuildableStub()
+  let latestBuilder: LatestBuildable = LatestBuildableStub()
+  let libraryBuilder: LibraryBuildable = LibraryBuildableStub()
   let searchBuilder: SearchBuildable = SearchBuildableStub()
 }
 
-private struct TopPodcastsBuildableStub: TopPodcastsBuildable {
+private struct DiscoverBuildableStub: DiscoverBuildable {
   @MainActor
-  func build(listener: TopPodcastsListener?) -> ViewControllable {
+  func build(listener: DiscoverListener?) -> ViewControllable {
     UIViewController()
   }
 }
 
-private struct NewBuildableStub: NewBuildable {
+private struct LatestBuildableStub: LatestBuildable {
   @MainActor
-  func build(listener: NewListener?) -> ViewControllable {
+  func build(listener: LatestListener?) -> ViewControllable {
     UIViewController()
   }
 }
 
-private struct BookmarksBuildableStub: BookmarksBuildable {
+private struct LibraryBuildableStub: LibraryBuildable {
   @MainActor
-  func build(listener: BookmarksListener?) -> ViewControllable {
+  func build(listener: LibraryListener?) -> ViewControllable {
     UIViewController()
   }
 }

@@ -3,18 +3,18 @@ import Podcast
 import RIBsLite
 
 @MainActor
-protocol TopPodcastsControllable: ViewControllable {}
+protocol DiscoverControllable: ViewControllable {}
 
 @MainActor
-protocol TopPodcastsRouting: Routing {
+protocol DiscoverRouting: Routing {
   func routeToPodcast(_ podcast: Podcast)
 }
 
 @MainActor
-final class TopPodcastsRouter: Router<ViewControllable>, TopPodcastsRouting {
+final class DiscoverRouter: Router<ViewControllable>, DiscoverRouting {
   private let podcastBuilder: PodcastBuildable
 
-  init(dependency: TopPodcastsDependency, viewController: TopPodcastsControllable) {
+  init(dependency: DiscoverDependency, viewController: DiscoverControllable) {
     self.podcastBuilder = dependency.podcastBuilder
     super.init(viewController: viewController)
   }

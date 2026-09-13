@@ -25,8 +25,8 @@ let project = Project(
       ]
     ),
     .featureTarget(
-      name: "Bookmarks",
-      sourcePath: "Bookmarks/Sources",
+      name: "Library",
+      sourcePath: "Library/Sources",
       dependencies: [
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
@@ -34,12 +34,12 @@ let project = Project(
       ]
     ),
     .featureUnitTestsTarget(
-      name: "BookmarksTests",
-      sourcePath: "Bookmarks/Tests",
+      name: "LibraryTests",
+      sourcePath: "Library/Tests",
       dependencies: [
         .core(target: "Entity"),
         .core(target: "Repository"),
-        .target(name: "Bookmarks"),
+        .target(name: "Library"),
       ]
     ),
     .featureTarget(
@@ -49,10 +49,10 @@ let project = Project(
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
-        .target(name: "Bookmarks"),
-        .target(name: "New"),
+        .target(name: "Discover"),
+        .target(name: "Latest"),
+        .target(name: "Library"),
         .target(name: "Search"),
-        .target(name: "TopPodcasts"),
       ]
     ),
     .featureUnitTestsTarget(
@@ -62,16 +62,16 @@ let project = Project(
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
-        .target(name: "Bookmarks"),
+        .target(name: "Discover"),
         .target(name: "Main"),
-        .target(name: "New"),
+        .target(name: "Latest"),
+        .target(name: "Library"),
         .target(name: "Search"),
-        .target(name: "TopPodcasts"),
       ]
     ),
     .featureTarget(
-      name: "New",
-      sourcePath: "New/Sources",
+      name: "Latest",
+      sourcePath: "Latest/Sources",
       dependencies: [
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
@@ -79,12 +79,12 @@ let project = Project(
       ]
     ),
     .featureUnitTestsTarget(
-      name: "NewTests",
-      sourcePath: "New/Tests",
+      name: "LatestTests",
+      sourcePath: "Latest/Tests",
       dependencies: [
         .core(target: "Entity"),
         .core(target: "Repository"),
-        .target(name: "New"),
+        .target(name: "Latest"),
       ]
     ),
     .featureTarget(
@@ -132,8 +132,8 @@ let project = Project(
       ]
     ),
     .featureTarget(
-      name: "TopPodcasts",
-      sourcePath: "TopPodcasts/Sources",
+      name: "Discover",
+      sourcePath: "Discover/Sources",
       dependencies: [
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
@@ -142,14 +142,14 @@ let project = Project(
       ]
     ),
     .featureUnitTestsTarget(
-      name: "TopPodcastsTests",
-      sourcePath: "TopPodcasts/Tests",
+      name: "DiscoverTests",
+      sourcePath: "Discover/Tests",
       dependencies: [
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
         .target(name: "Podcast"),
-        .target(name: "TopPodcasts"),
+        .target(name: "Discover"),
       ]
     ),
   ],
@@ -158,23 +158,23 @@ let project = Project(
       name: "Feature",
       buildAction: .buildAction(
         targets: [
-          "Bookmarks",
+          "Discover",
           "Episode",
           "Main",
-          "New",
+          "Latest",
+          "Library",
           "Podcast",
           "Search",
-          "TopPodcasts",
         ]
       ),
       testAction: .targets([
-        .testableTarget(target: "BookmarksTests"),
+        .testableTarget(target: "DiscoverTests"),
         .testableTarget(target: "EpisodeTests"),
         .testableTarget(target: "MainTests"),
-        .testableTarget(target: "NewTests"),
+        .testableTarget(target: "LatestTests"),
+        .testableTarget(target: "LibraryTests"),
         .testableTarget(target: "PodcastTests"),
         .testableTarget(target: "SearchTests"),
-        .testableTarget(target: "TopPodcastsTests"),
       ])
     ),
   ]

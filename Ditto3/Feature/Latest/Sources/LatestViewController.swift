@@ -1,7 +1,7 @@
 import UIKit
 
 @MainActor
-final class BookmarksViewController: UIViewController {
+final class LatestViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
 
@@ -9,7 +9,7 @@ final class BookmarksViewController: UIViewController {
 
     let label = UILabel()
     label.translatesAutoresizingMaskIntoConstraints = false
-    label.text = "Bookmarks"
+    label.text = "Latest"
     label.font = .systemFont(ofSize: 28, weight: .semibold)
     label.textAlignment = .center
 

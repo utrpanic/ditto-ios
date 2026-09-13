@@ -3,16 +3,16 @@ import Foundation
 import Podcast
 import Repository
 import RIBsLite
-@testable import TopPodcasts
+@testable import Discover
 import Testing
 import UIKit
 
-struct TopPodcastsInteractorTests {
+struct DiscoverInteractorTests {
   @MainActor
   @Test
   func selectingPodcastRoutesToPodcast() {
     let podcast = makePodcast()
-    let interactor = TopPodcastsInteractor(dependency: Dependency())
+    let interactor = DiscoverInteractor(dependency: Dependency())
     let router = RouterSpy()
     interactor.router = router
 
@@ -28,11 +28,11 @@ struct TopPodcastsInteractorTests {
     let destination = UIViewController()
     let podcastBuilder = PodcastBuilderSpy(destination: destination)
     let dependency = Dependency(podcastBuilder: podcastBuilder)
-    let topPodcastsViewController = TopPodcastsViewControllerStub()
-    let navigationController = UINavigationController(rootViewController: topPodcastsViewController)
-    let router = TopPodcastsRouter(
+    let discoverViewController = DiscoverViewControllerStub()
+    let navigationController = UINavigationController(rootViewController: discoverViewController)
+    let router = DiscoverRouter(
       dependency: dependency,
-      viewController: topPodcastsViewController
+      viewController: discoverViewController
     )
 
     router.routeToPodcast(podcast)
@@ -46,11 +46,11 @@ private func makePodcast() -> Podcast {
   Podcast(
     id: PodcastID(42),
     title: "Architecture Talks",
-    author: "KeepCast"
+    author: "Ditto"
   )
 }
 
-private struct Dependency: TopPodcastsDependency {
+private struct Dependency: DiscoverDependency {
   let podcastRepository: PodcastRepository = RepositoryStub()
   let podcastBuilder: PodcastBuildable
 
@@ -71,7 +71,7 @@ private struct RepositoryStub: PodcastRepository {
 }
 
 @MainActor
-private final class RouterSpy: TopPodcastsRouting {
+private final class RouterSpy: DiscoverRouting {
   private(set) var routedPodcast: Podcast?
 
   func routeToPodcast(_ podcast: Podcast) {
@@ -102,4 +102,4 @@ private final class PodcastBuilderStub: PodcastBuildable {
 }
 
 @MainActor
-private final class TopPodcastsViewControllerStub: UIViewController, TopPodcastsControllable {}
+private final class DiscoverViewControllerStub: UIViewController, DiscoverControllable {}

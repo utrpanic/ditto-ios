@@ -30,7 +30,7 @@ struct EpisodeRepositoryImpTests {
               "collectionId": 42,
               "collectionName": "Architecture Talks",
               "trackName": "View-controller-centered RIBs",
-              "artistName": "KeepCast",
+              "artistName": "Ditto",
               "artworkUrl600": "https://example.com/episode.png",
               "feedUrl": "https://example.com/feed.xml",
               "episodeUrl": "https://example.com/episode.mp3",
@@ -73,7 +73,7 @@ struct EpisodeRepositoryImpTests {
     #expect(episode.podcastID == PodcastID(42))
     #expect(episode.podcastTitle == "Architecture Talks")
     #expect(episode.title == "View-controller-centered RIBs")
-    #expect(episode.author == "KeepCast")
+    #expect(episode.author == "Ditto")
     #expect(episode.artworkURL == URL(string: "https://example.com/episode.png"))
     #expect(episode.feedURL == URL(string: "https://example.com/feed.xml"))
     #expect(episode.audioURL == URL(string: "https://example.com/episode.mp3"))
@@ -120,7 +120,7 @@ struct EpisodeRepositoryImpTests {
     let podcast = Podcast(
       id: PodcastID(42),
       title: "Architecture Talks",
-      author: "KeepCast",
+      author: "Ditto",
       artworkURL: URL(string: "https://example.com/podcast.png")
     )
     let feedURL = try #require(URL(string: "https://example.com/feed.xml"))
@@ -169,7 +169,7 @@ struct EpisodeRepositoryImpTests {
       ),
       response: makeHTTPURLResponse(url: "https://example.com/feed.xml", statusCode: 200)
     )
-    let podcast = Podcast(id: PodcastID(42), title: "Architecture Talks", author: "KeepCast")
+    let podcast = Podcast(id: PodcastID(42), title: "Architecture Talks", author: "Ditto")
     let feedURL = try #require(URL(string: "https://example.com/feed.xml"))
     let repository = EpisodeRepositoryImp(session: session)
 
@@ -185,7 +185,7 @@ struct EpisodeRepositoryImpTests {
   @Test
   func fetchEpisodesReturnsEmptyForNonpositiveLimitWithoutNetworkCall() async throws {
     let session = URLSessionMock()
-    let podcast = Podcast(id: PodcastID(42), title: "Architecture Talks", author: "KeepCast")
+    let podcast = Podcast(id: PodcastID(42), title: "Architecture Talks", author: "Ditto")
     let feedURL = try #require(URL(string: "https://example.com/feed.xml"))
     let repository = EpisodeRepositoryImp(session: session)
 

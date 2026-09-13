@@ -1,15 +1,15 @@
-import TopPodcasts
-import New
-import Bookmarks
-import Search
+import Discover
+import Latest
+import Library
 import RIBsLite
+import Search
 
 enum MainAction {
   case selectTab(MainTab)
 }
 
 @MainActor
-final class MainInteractor: Interactor, MainInteractable, TopPodcastsListener, NewListener, BookmarksListener, SearchListener {
+final class MainInteractor: Interactor, MainInteractable, DiscoverListener, LatestListener, LibraryListener, SearchListener {
   private let dependency: MainDependency
   let store: StateStore<MainState>
   var router: MainRouting?
@@ -22,9 +22,9 @@ final class MainInteractor: Interactor, MainInteractable, TopPodcastsListener, N
   }
 
   override func didBecomeActive() {
-    router?.attachTopPodcasts(listener: self)
-    router?.attachNew(listener: self)
-    router?.attachBookmarks(listener: self)
+    router?.attachDiscover(listener: self)
+    router?.attachLatest(listener: self)
+    router?.attachLibrary(listener: self)
     router?.attachSearch(listener: self)
   }
 
