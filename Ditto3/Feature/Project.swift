@@ -29,14 +29,17 @@ let project = Project(
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
+        .target(name: "Podcast"),
       ]
     ),
     .featureUnitTestsTarget(
       name: "LibraryTests",
       sourcePath: "Library/Tests",
       dependencies: [
+        .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
+        .target(name: "Podcast"),
         .target(name: "Library"),
       ]
     ),

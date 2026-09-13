@@ -1,23 +1,20 @@
+import RIBsLite
+import SwiftUI
 import UIKit
 
 @MainActor
-final class LibraryViewController: UIViewController {
-  override func viewDidLoad() {
-    super.viewDidLoad()
+final class LibraryViewController: UIHostingController<StateReader<LibraryState, LibraryView>>, LibraryControllable {
+  let interactor: LibraryInteractable
 
-    view.backgroundColor = .systemBackground
+  init(interactor: LibraryInteractable) {
+    self.interactor = interactor
+    super.init(rootView: StateReader(store: interactor.store) { state in
+      LibraryView(state: state, sendAction: interactor.sendAction)
+    })
+  }
 
-    let label = UILabel()
-    label.translatesAutoresizingMaskIntoConstraints = false
-    label.text = "Library"
-    label.font = .systemFont(ofSize: 28, weight: .semibold)
-    label.textAlignment = .center
-
-    view.addSubview(label)
-
-    NSLayoutConstraint.activate([
-      label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-      label.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-    ])
+  @available(*, unavailable)
+  required dynamic init?(coder aDecoder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
   }
 }

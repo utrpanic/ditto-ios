@@ -1,18 +1,21 @@
+import Podcast
+import Repository
 import RIBsLite
 
-public protocol LibraryDependency {}
+public protocol LibraryDependency {
+  var followingRepository: FollowingRepository { get }
+  var podcastBuilder: PodcastBuildable { get }
+}
 
-public final class LibraryBuilder: LibraryBuildable {
-  private let dependency: LibraryDependency
-
-  public init(dependency: LibraryDependency) {
-    self.dependency = dependency
-  }
-
+public final class LibraryBuilder: Builder<LibraryDependency>, LibraryBuildable {
   @MainActor
   public func build(listener: LibraryListener?) -> ViewControllable {
-    _ = dependency
-    _ = listener
-    return LibraryViewController()
+    let interactor = LibraryInteractor(dependency: dependency)
+    let viewController = LibraryViewController(interactor: interactor)
+    let router = LibraryRouter(dependency: dependency, viewController: viewController)
+    interactor.router = router
+    interactor.listener = listener
+    interactor.activate()
+    return viewController
   }
 }

@@ -15,7 +15,7 @@
    - Follow/Unfollow action과 상태를 추가한다.
    - optimistic update와 failure rollback을 구현한다.
    - 모든 Podcast 진입점에서 같은 Follow 상태를 표시한다.
-6. Library Feature를 구현한다.
+6. Library Feature를 구현한다. ✅
    - Follow한 Podcast 목록과 empty state를 표시한다.
    - Podcast feature로 routing한다.
    - Following change stream을 반영한다.
