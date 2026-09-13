@@ -1,8 +1,9 @@
 import Entity
 
-public protocol FollowingRepository {
-  func fetchFollowedPodcastIDs() -> Set<PodcastID>
-  func isFollowing(podcastID: PodcastID) -> Bool
-  func follow(podcastID: PodcastID)
-  func unfollow(podcastID: PodcastID)
+public protocol FollowingRepository: Sendable {
+  func fetchFollowedPodcasts() async throws -> [FollowedPodcast]
+  func isFollowing(podcastID: PodcastID) async throws -> Bool
+  func follow(_ podcast: Podcast) async throws
+  func unfollow(podcastID: PodcastID) async throws
+  func changes() async -> AsyncStream<Void>
 }

@@ -5,7 +5,7 @@
 1. PRD/TRD를 확정된 Podcast, Follow, Latest, Queue, Player 개념으로 정리한다. ✅
 2. Feature와 Repository 명칭 및 `docs`, `scripts` 디렉터리를 정리한다. ✅
 3. 기존 Episode Keep 구현을 제거한다. ✅
-4. Following Core Layer를 구현한다.
+4. Following Core Layer를 구현한다. ✅
    - `FollowedPodcast` entity를 추가한다.
    - `FollowingRepository`가 전체 Podcast snapshot과 `followedAt`을 저장하게 한다.
    - versioned JSON persistence와 change stream을 구현한다.
