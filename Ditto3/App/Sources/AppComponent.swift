@@ -21,7 +21,6 @@ typealias Dependencies = MainDependency
 final class AppComponent: Dependencies {
   let podcastRepository: PodcastRepository
   let episodeRepository: EpisodeRepository
-  let keepRepository: KeepRepository
 
   var mainBuilder: MainBuildable { MainBuilder(dependency: self) }
   var discoverBuilder: DiscoverBuildable { DiscoverBuilder(dependency: self) }
@@ -35,7 +34,6 @@ final class AppComponent: Dependencies {
     let session = URLSession.shared
     podcastRepository = PodcastRepositoryImp(session: session)
     episodeRepository = EpisodeRepositoryImp(session: session)
-    keepRepository = KeepRepositoryImp(userDefaults: UserDefaults.standard)
   }
 
   @MainActor
