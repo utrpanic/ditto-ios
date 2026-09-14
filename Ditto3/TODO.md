@@ -30,7 +30,7 @@
    - `PlaybackControlling`과 `PlaybackState`를 정의한다.
    - AVPlayer 기반 Platform 구현을 추가한다.
    - play, pause, seek, 앞뒤 건너뛰기와 상태 전환을 테스트한다.
-9. Persistent Player Feature를 구현한다.
+9. Persistent Player Feature를 구현한다. ✅
    - Player를 Main의 root-level child Riblet으로 연결한다.
    - 모든 tab 위에 MiniPlayer를 배치한다.
    - expanded Player를 구현한다.

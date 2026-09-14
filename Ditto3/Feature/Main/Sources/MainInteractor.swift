@@ -1,6 +1,7 @@
 import Discover
 import Latest
 import Library
+import Player
 import RIBsLite
 import Search
 
@@ -9,7 +10,7 @@ enum MainAction {
 }
 
 @MainActor
-final class MainInteractor: Interactor, MainInteractable, DiscoverListener, LatestListener, LibraryListener, SearchListener {
+final class MainInteractor: Interactor, MainInteractable, DiscoverListener, LatestListener, LibraryListener, PlayerListener, SearchListener {
   private let dependency: MainDependency
   let store: StateStore<MainState>
   var router: MainRouting?
@@ -26,6 +27,7 @@ final class MainInteractor: Interactor, MainInteractable, DiscoverListener, Late
     router?.attachLatest(listener: self)
     router?.attachLibrary(listener: self)
     router?.attachSearch(listener: self)
+    router?.attachPlayer(listener: self)
   }
 
   func sendAction(_ action: MainAction) {

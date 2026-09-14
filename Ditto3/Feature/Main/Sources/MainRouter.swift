@@ -1,6 +1,7 @@
 import Discover
 import Latest
 import Library
+import Player
 import RIBsLite
 import Search
 import UIKit
@@ -11,6 +12,7 @@ protocol MainViewControllable: ViewControllable {
   func attachLatestTab(_ viewController: ViewControllable)
   func attachLibraryTab(_ viewController: ViewControllable)
   func attachSearchTab(_ viewController: ViewControllable)
+  func attachPlayer(_ viewController: ViewControllable)
 }
 
 @MainActor
@@ -19,6 +21,7 @@ protocol MainRouting: Routing {
   func attachLatest(listener: LatestListener?)
   func attachLibrary(listener: LibraryListener?)
   func attachSearch(listener: SearchListener?)
+  func attachPlayer(listener: PlayerListener?)
 }
 
 @MainActor
@@ -31,12 +34,15 @@ final class MainRouter: Router<MainViewControllable>, MainRouting {
   private var libraryViewController: ViewControllable?
   private let searchBuilder: SearchBuildable
   private var searchViewController: ViewControllable?
+  private let playerBuilder: PlayerBuildable
+  private var playerViewController: ViewControllable?
 
   init(dependency: MainDependency, viewController: MainViewControllable) {
     self.discoverBuilder = dependency.discoverBuilder
     self.latestBuilder = dependency.latestBuilder
     self.libraryBuilder = dependency.libraryBuilder
     self.searchBuilder = dependency.searchBuilder
+    self.playerBuilder = dependency.playerBuilder
     super.init(viewController: viewController)
   }
 
@@ -66,5 +72,12 @@ final class MainRouter: Router<MainViewControllable>, MainRouting {
     let viewController = searchBuilder.build(listener: listener)
     searchViewController = viewController
     self.viewController.attachSearchTab(viewController)
+  }
+
+  func attachPlayer(listener: PlayerListener?) {
+    guard playerViewController == nil else { return }
+    let viewController = playerBuilder.build(listener: listener)
+    playerViewController = viewController
+    self.viewController.attachPlayer(viewController)
   }
 }

@@ -22,6 +22,7 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
   private var latestTab: UITab?
   private var libraryTab: UITab?
   private var searchTab: UISearchTab?
+  private var playerViewController: ViewControllable?
   
   private var cancellables = Set<AnyCancellable>()
 
@@ -114,6 +115,23 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
     let tab = UISearchTab(viewControllerProvider: { _ in navigationController })
     searchTab = tab
     appendTab(tab)
+  }
+
+  func attachPlayer(_ viewController: ViewControllable) {
+    guard playerViewController == nil else { return }
+    playerViewController = viewController
+
+    let playerUI = viewController.ui
+    addChild(playerUI)
+    playerUI.view.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(playerUI.view)
+    NSLayoutConstraint.activate([
+      playerUI.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      playerUI.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      playerUI.view.bottomAnchor.constraint(equalTo: tabBar.topAnchor),
+      playerUI.view.heightAnchor.constraint(equalToConstant: playerUI.preferredContentSize.height),
+    ])
+    playerUI.didMove(toParent: self)
   }
 
   private func appendTab(_ tab: UITab) {

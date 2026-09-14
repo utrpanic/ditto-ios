@@ -53,6 +53,7 @@ let project = Project(
         .target(name: "Discover"),
         .target(name: "Latest"),
         .target(name: "Library"),
+        .target(name: "Player"),
         .target(name: "Search"),
       ]
     ),
@@ -67,7 +68,27 @@ let project = Project(
         .target(name: "Main"),
         .target(name: "Latest"),
         .target(name: "Library"),
+        .target(name: "Player"),
         .target(name: "Search"),
+      ]
+    ),
+    .featureTarget(
+      name: "Player",
+      sourcePath: "Player/Sources",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .core(target: "Playback"),
+      ]
+    ),
+    .featureUnitTestsTarget(
+      name: "PlayerTests",
+      sourcePath: "Player/Tests",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .core(target: "Playback"),
+        .target(name: "Player"),
       ]
     ),
     .featureTarget(
@@ -168,6 +189,7 @@ let project = Project(
           "Latest",
           "Library",
           "Podcast",
+          "Player",
           "Search",
         ]
       ),
@@ -178,6 +200,7 @@ let project = Project(
         .testableTarget(target: "LatestTests"),
         .testableTarget(target: "LibraryTests"),
         .testableTarget(target: "PodcastTests"),
+        .testableTarget(target: "PlayerTests"),
         .testableTarget(target: "SearchTests"),
       ])
     ),

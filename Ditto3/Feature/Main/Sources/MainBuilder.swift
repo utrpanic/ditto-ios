@@ -1,6 +1,7 @@
 import Discover
 import Latest
 import Library
+import Player
 import RIBsLite
 import Search
 
@@ -8,6 +9,7 @@ public protocol MainDependency {
   var discoverBuilder: DiscoverBuildable { get }
   var latestBuilder: LatestBuildable { get }
   var libraryBuilder: LibraryBuildable { get }
+  var playerBuilder: PlayerBuildable { get }
   var searchBuilder: SearchBuildable { get }
 }
 
