@@ -17,28 +17,11 @@ let project = Project(
         .target(name: "Platform"),
       ]
     ),
-    .platformFrameworkTarget(
-      name: "PlaybackImp",
-      sourcePath: "Playback/Implementation",
-      dependencies: [
-        .core(target: "Entity"),
-        .core(target: "Playback"),
-      ]
-    ),
     .platformUnitTestsTarget(
       name: "PlatformTests",
       sourcePath: "Tests",
       dependencies: [
         .target(name: "Platform"),
-      ]
-    ),
-    .platformUnitTestsTarget(
-      name: "PlaybackImpTests",
-      sourcePath: "Playback/Tests",
-      dependencies: [
-        .core(target: "Entity"),
-        .core(target: "Playback"),
-        .target(name: "PlaybackImp"),
       ]
     ),
   ],
@@ -49,12 +32,10 @@ let project = Project(
         targets: [
           "Platform",
           "PlatformTestSupport",
-          "PlaybackImp",
         ]
       ),
       testAction: .targets([
         .testableTarget(target: "PlatformTests"),
-        .testableTarget(target: "PlaybackImpTests"),
       ])
     ),
   ]

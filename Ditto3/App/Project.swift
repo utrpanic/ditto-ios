@@ -34,8 +34,8 @@ let project = Project(
       resources: ["Resources/**"],
       dependencies: [
         .platform(target: "Platform"),
-        .platform(target: "PlaybackImp"),
         .core(target: "Playback"),
+        .core(target: "PlaybackImp"),
         .core(target: "Repository"),
         .core(target: "RepositoryImp"),
         .feature(target: "Discover"),

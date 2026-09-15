@@ -1,14 +1,15 @@
 import Entity
 import Foundation
+import PlatformTestSupport
 import Playback
 @testable import PlaybackImp
 import Testing
 
-struct AVPlayerPlaybackControllerTests {
+struct PlaybackControllerImpTests {
   @MainActor
   @Test
   func playPauseAndResumePublishStateTransitions() async {
-    let player = AudioPlayerSpy()
+    let player = AVPlayerMock()
     let now = Date(timeIntervalSince1970: 1_000)
     let controller = makeController(player: player, now: now)
     var states = controller.stateChanges().makeAsyncIterator()
@@ -22,7 +23,7 @@ struct AVPlayerPlaybackControllerTests {
     #expect(player.loadedURL == episode.audioURL)
     #expect(player.playCallCount == 1)
 
-    player.currentTime = 42
+    player.playbackCurrentTime = 42
     controller.pause()
     #expect(await states.next() == .paused(makeSession(episode: episode, position: 42, now: now)))
     #expect(player.pauseCallCount == 1)
@@ -35,7 +36,7 @@ struct AVPlayerPlaybackControllerTests {
   @MainActor
   @Test
   func seekAndSkipClampToEpisodeBounds() async {
-    let player = AudioPlayerSpy()
+    let player = AVPlayerMock()
     let controller = makeController(player: player)
     await controller.play(makeEpisode(duration: 120))
 
@@ -45,21 +46,24 @@ struct AVPlayerPlaybackControllerTests {
     await controller.seek(to: 500)
     #expect(player.seekPositions.last == 120)
 
-    player.currentTime = 50
+    player.playbackCurrentTime = 50
     controller.skipBackward()
     await waitUntil { player.seekPositions.last == 35 }
 
-    player.currentTime = 50
+    player.playbackCurrentTime = 50
     controller.skipForward()
     await waitUntil { player.seekPositions.last == 80 }
   }
 
   @MainActor
   @Test
-  func periodicTimeUpdatesCurrentPlayingSession() async {
-    let player = AudioPlayerSpy()
-    let nowPlayingInfo = NowPlayingInfoSpy()
-    let controller = makeController(player: player, nowPlayingInfo: nowPlayingInfo)
+  func periodicTimeUpdatesStateAndNowPlayingInfo() async {
+    let player = AVPlayerMock()
+    let nowPlayingInfoCenter = MPNowPlayingInfoCenterMock()
+    let controller = makeController(
+      player: player,
+      nowPlayingInfoCenter: nowPlayingInfoCenter
+    )
     var states = controller.stateChanges().makeAsyncIterator()
     _ = await states.next()
     await controller.play(makeEpisode())
@@ -73,7 +77,8 @@ struct AVPlayerPlaybackControllerTests {
       return
     }
     #expect(session.position == 18)
-    #expect(nowPlayingInfo.states.last == .playing(session))
+    #expect(nowPlayingInfoCenter.updates.last?.position == 18)
+    #expect(nowPlayingInfoCenter.updates.last?.isPlaying == true)
   }
 
   @MainActor
@@ -96,7 +101,9 @@ struct AVPlayerPlaybackControllerTests {
   @MainActor
   @Test
   func audioSessionFailurePreservesEpisodeInFailureState() async {
-    let controller = makeController(audioSession: AudioSessionSpy(shouldFail: true))
+    let audioSession = AVAudioSessionMock()
+    audioSession.shouldFail = true
+    let controller = makeController(audioSession: audioSession)
     var states = controller.stateChanges().makeAsyncIterator()
     _ = await states.next()
     let episode = makeEpisode()
@@ -114,35 +121,40 @@ struct AVPlayerPlaybackControllerTests {
   @MainActor
   @Test
   func remoteCommandsControlPlayback() async {
-    let player = AudioPlayerSpy()
-    let remoteCommands = RemoteCommandSpy()
-    let controller = makeController(player: player, remoteCommands: remoteCommands)
+    let player = AVPlayerMock()
+    let remoteCommandCenter = MPRemoteCommandCenterMock()
+    let controller = makeController(
+      player: player,
+      remoteCommandCenter: remoteCommandCenter
+    )
     await controller.play(makeEpisode())
 
-    remoteCommands.pause?()
+    remoteCommandCenter.sendPause()
     #expect(player.pauseCallCount == 1)
 
-    remoteCommands.play?()
+    remoteCommandCenter.sendPlay()
     #expect(player.playCallCount == 2)
 
-    remoteCommands.seek?(64)
+    remoteCommandCenter.sendSeek(to: 64)
     await waitUntil { player.seekPositions.last == 64 }
+    #expect(remoteCommandCenter.backwardInterval == PlaybackControllerImp.backwardInterval)
+    #expect(remoteCommandCenter.forwardInterval == PlaybackControllerImp.forwardInterval)
   }
 }
 
 @MainActor
 private func makeController(
-  player: AudioPlayerSpy? = nil,
-  audioSession: AudioSessionSpy? = nil,
-  remoteCommands: RemoteCommandSpy? = nil,
-  nowPlayingInfo: NowPlayingInfoSpy? = nil,
+  player: AVPlayerMock? = nil,
+  audioSession: AVAudioSessionMock? = nil,
+  remoteCommandCenter: MPRemoteCommandCenterMock? = nil,
+  nowPlayingInfoCenter: MPNowPlayingInfoCenterMock? = nil,
   now: Date = Date(timeIntervalSince1970: 1_000)
-) -> AVPlayerPlaybackController {
-  AVPlayerPlaybackController(
-    player: player ?? AudioPlayerSpy(),
-    audioSession: audioSession ?? AudioSessionSpy(),
-    remoteCommands: remoteCommands ?? RemoteCommandSpy(),
-    nowPlayingInfo: nowPlayingInfo ?? NowPlayingInfoSpy(),
+) -> PlaybackControllerImp {
+  PlaybackControllerImp(
+    player: player ?? AVPlayerMock(),
+    audioSession: audioSession ?? AVAudioSessionMock(),
+    remoteCommandCenter: remoteCommandCenter ?? MPRemoteCommandCenterMock(),
+    nowPlayingInfoCenter: nowPlayingInfoCenter ?? MPNowPlayingInfoCenterMock(),
     now: { now }
   )
 }
@@ -174,106 +186,5 @@ private func waitUntil(_ condition: () -> Bool) async {
   for _ in 0..<1_000 {
     guard !condition() else { return }
     await Task.yield()
-  }
-}
-
-@MainActor
-private final class AudioPlayerSpy: AudioPlayerControlling {
-  var currentTime: TimeInterval = 0
-  private(set) var loadedURL: URL?
-  private(set) var playCallCount = 0
-  private(set) var pauseCallCount = 0
-  private(set) var seekPositions: [TimeInterval] = []
-  private var timeHandler: ((TimeInterval) -> Void)?
-
-  func load(url: URL) {
-    loadedURL = url
-    currentTime = 0
-  }
-
-  func play() {
-    playCallCount += 1
-  }
-
-  func pause() {
-    pauseCallCount += 1
-  }
-
-  func seek(to position: TimeInterval) async {
-    seekPositions.append(position)
-    currentTime = position
-  }
-
-  func addPeriodicTimeObserver(_ handler: @escaping (TimeInterval) -> Void) -> Any {
-    timeHandler = handler
-    return NSObject()
-  }
-
-  func removeTimeObserver(_ observer: Any) {
-    timeHandler = nil
-  }
-
-  func emitTime(_ position: TimeInterval) {
-    currentTime = position
-    timeHandler?(position)
-  }
-}
-
-@MainActor
-private final class AudioSessionSpy: AudioSessionControlling {
-  private let shouldFail: Bool
-
-  init(shouldFail: Bool = false) {
-    self.shouldFail = shouldFail
-  }
-
-  func activatePlayback() throws {
-    if shouldFail { throw AudioSessionError.failed }
-  }
-}
-
-private enum AudioSessionError: LocalizedError {
-  case failed
-
-  var errorDescription: String? { "Audio session activation failed." }
-}
-
-@MainActor
-private final class RemoteCommandSpy: RemoteCommandConfiguring {
-  private(set) var play: (() -> Void)?
-  private(set) var pause: (() -> Void)?
-  private(set) var seek: ((TimeInterval) -> Void)?
-  private(set) var skipBackward: (() -> Void)?
-  private(set) var skipForward: (() -> Void)?
-
-  func configure(
-    play: @escaping () -> Void,
-    pause: @escaping () -> Void,
-    seek: @escaping (TimeInterval) -> Void,
-    skipBackward: @escaping () -> Void,
-    skipForward: @escaping () -> Void
-  ) {
-    self.play = play
-    self.pause = pause
-    self.seek = seek
-    self.skipBackward = skipBackward
-    self.skipForward = skipForward
-  }
-
-  func reset() {
-    play = nil
-    pause = nil
-    seek = nil
-    skipBackward = nil
-    skipForward = nil
-  }
-}
-
-@MainActor
-private final class NowPlayingInfoSpy: NowPlayingInfoUpdating {
-  private(set) var states: [PlaybackState] = []
-
-  func update(_ state: PlaybackState) {
-    states.append(state)
   }
 }

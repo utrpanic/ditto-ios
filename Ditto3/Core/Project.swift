@@ -25,6 +25,26 @@ let project = Project(
       ]
     ),
     .coreTarget(
+      name: "PlaybackImp",
+      sourcePath: "Playback/Implementation",
+      dependencies: [
+        .platform(target: "Platform"),
+        .target(name: "Entity"),
+        .target(name: "Playback"),
+      ]
+    ),
+    .coreUnitTestsTarget(
+      name: "PlaybackImpTests",
+      sourcePath: "Playback/Tests",
+      dependencies: [
+        .platform(target: "Platform"),
+        .platform(target: "PlatformTestSupport"),
+        .target(name: "Entity"),
+        .target(name: "Playback"),
+        .target(name: "PlaybackImp"),
+      ]
+    ),
+    .coreTarget(
       name: "RepositoryImp",
       sourcePath: "Repository/Implementation",
       dependencies: [
@@ -62,11 +82,13 @@ let project = Project(
         targets: [
           "Entity",
           "Playback",
+          "PlaybackImp",
           "Repository",
           "RepositoryImp",
         ]
       ),
       testAction: .targets([
+        .testableTarget(target: "PlaybackImpTests"),
         .testableTarget(target: "RepositoryImpTests"),
       ])
     ),

@@ -52,14 +52,28 @@ Core
   Repository/Interface
   Repository/Implementation
   Playback/Interface
+  Playback/Implementation
 
 Platform
   URLSessionProtocol
   UserDefaultsProtocol
-  AVPlayer adapter
+  AVPlayerProtocol
+  AVAudioSessionProtocol
+  MPRemoteCommandCenterProtocol
+  MPNowPlayingInfoCenterProtocol
 ```
 
 Feature target은 Repository interface와 Entity에만 의존한다. concrete implementation은 AppComponent가 생성하고 dependency protocol을 통해 주입한다.
+
+Playback은 같은 규칙을 따른다. Feature는 Core의 `PlaybackControlling`만 사용하고, Core의 `PlaybackControllerImp`가 Platform system protocol을 통해 Apple SDK를 사용한다. Platform은 별도 adapter 객체를 만들지 않고 해당 system type을 protocol에 직접 conform시킨다.
+
+```text
+Feature.Player
+-> Core.Playback Interface
+<- Core.Playback Implementation
+-> Platform system protocol
+-> AVFoundation / MediaPlayer system type
+```
 
 ## 4. RIBsLite Composition
 
@@ -260,7 +274,16 @@ public protocol PlaybackControlling: AnyObject {
 }
 ```
 
-Player Interactor는 `PlaybackControlling`과 persistence repository를 조합한다. Feature는 `AVPlayer`에 직접 의존하지 않는다.
+Player Interactor는 `PlaybackControlling`과 persistence repository를 조합한다. Feature는 `AVPlayer`에 직접 의존하지 않는다. `PlaybackControllerImp`는 Core/Playback/Implementation에 위치하고, AppComponent가 실제 Apple system 객체를 주입한다.
+
+```swift
+PlaybackControllerImp(
+  player: AVPlayer(),
+  audioSession: AVAudioSession.sharedInstance(),
+  remoteCommandCenter: MPRemoteCommandCenter.shared(),
+  nowPlayingInfoCenter: MPNowPlayingInfoCenter.default()
+)
+```
 
 Playback foundation의 system integration 범위는 다음과 같다.
 

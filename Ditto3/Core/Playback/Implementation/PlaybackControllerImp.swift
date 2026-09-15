@@ -1,70 +1,62 @@
 import Entity
 import Foundation
+import Platform
 import Playback
 
 @MainActor
-public final class AVPlayerPlaybackController: PlaybackControlling {
+public final class PlaybackControllerImp: PlaybackControlling {
   public static let backwardInterval: TimeInterval = 15
   public static let forwardInterval: TimeInterval = 30
 
-  private let player: AudioPlayerControlling
-  private let audioSession: AudioSessionControlling
-  private let remoteCommands: RemoteCommandConfiguring
-  private let nowPlayingInfo: NowPlayingInfoUpdating
+  private let player: AVPlayerProtocol
+  private let audioSession: AVAudioSessionProtocol
+  private let remoteCommandCenter: MPRemoteCommandCenterProtocol
+  private let nowPlayingInfoCenter: MPNowPlayingInfoCenterProtocol
   private let now: () -> Date
 
   private var state: PlaybackState = .idle
   private var changeContinuations: [UUID: AsyncStream<PlaybackState>.Continuation] = [:]
   private var timeObserver: Any?
+  private var resetRemoteCommands: (() -> Void)?
 
-  public convenience init() {
-    self.init(
-      player: AVPlayerAdapter(),
-      audioSession: AVAudioSessionAdapter(),
-      remoteCommands: SystemRemoteCommandCenter(),
-      nowPlayingInfo: SystemNowPlayingInfoCenter(),
-      now: { Date() }
-    )
+  public init(
+    player: AVPlayerProtocol,
+    audioSession: AVAudioSessionProtocol,
+    remoteCommandCenter: MPRemoteCommandCenterProtocol,
+    nowPlayingInfoCenter: MPNowPlayingInfoCenterProtocol
+  ) {
+    self.player = player
+    self.audioSession = audioSession
+    self.remoteCommandCenter = remoteCommandCenter
+    self.nowPlayingInfoCenter = nowPlayingInfoCenter
+    self.now = { Date() }
+    configureSystemObservers()
   }
 
   init(
-    player: AudioPlayerControlling,
-    audioSession: AudioSessionControlling,
-    remoteCommands: RemoteCommandConfiguring,
-    nowPlayingInfo: NowPlayingInfoUpdating,
+    player: AVPlayerProtocol,
+    audioSession: AVAudioSessionProtocol,
+    remoteCommandCenter: MPRemoteCommandCenterProtocol,
+    nowPlayingInfoCenter: MPNowPlayingInfoCenterProtocol,
     now: @escaping () -> Date
   ) {
     self.player = player
     self.audioSession = audioSession
-    self.remoteCommands = remoteCommands
-    self.nowPlayingInfo = nowPlayingInfo
+    self.remoteCommandCenter = remoteCommandCenter
+    self.nowPlayingInfoCenter = nowPlayingInfoCenter
     self.now = now
-
-    timeObserver = player.addPeriodicTimeObserver { [weak self] position in
-      self?.updatePosition(position)
-    }
-    remoteCommands.configure(
-      play: { [weak self] in self?.play() },
-      pause: { [weak self] in self?.pause() },
-      seek: { [weak self] position in
-        Task { @MainActor in
-          await self?.seek(to: position)
-        }
-      },
-      skipBackward: { [weak self] in self?.skipBackward() },
-      skipForward: { [weak self] in self?.skipForward() }
-    )
+    configureSystemObservers()
   }
 
   deinit {
     let player = player
-    let remoteCommands = remoteCommands
     let timeObserver = timeObserver
+    let resetRemoteCommands = resetRemoteCommands
     Task { @MainActor in
       if let timeObserver {
         player.removeTimeObserver(timeObserver)
       }
-      remoteCommands.reset()
+      resetRemoteCommands?()
     }
   }
 
@@ -95,13 +87,13 @@ public final class AVPlayerPlaybackController: PlaybackControlling {
       return
     }
     player.play()
-    publish(.playing(updatedSession(session, position: player.currentTime)))
+    publish(.playing(updatedSession(session, position: player.playbackCurrentTime)))
   }
 
   public func pause() {
     guard case .playing(let session) = state else { return }
     player.pause()
-    publish(.paused(updatedSession(session, position: player.currentTime)))
+    publish(.paused(updatedSession(session, position: player.playbackCurrentTime)))
   }
 
   public func seek(to position: TimeInterval) async {
@@ -129,14 +121,14 @@ public final class AVPlayerPlaybackController: PlaybackControlling {
   }
 
   public func skipBackward() {
-    let target = player.currentTime - Self.backwardInterval
+    let target = player.playbackCurrentTime - Self.backwardInterval
     Task { @MainActor [weak self] in
       await self?.seek(to: target)
     }
   }
 
   public func skipForward() {
-    let target = player.currentTime + Self.forwardInterval
+    let target = player.playbackCurrentTime + Self.forwardInterval
     Task { @MainActor [weak self] in
       await self?.seek(to: target)
     }
@@ -153,6 +145,25 @@ public final class AVPlayerPlaybackController: PlaybackControlling {
     }
     changeContinuations[id] = continuation
     return stream
+  }
+
+  private func configureSystemObservers() {
+    timeObserver = player.addPeriodicTimeObserver { [weak self] position in
+      self?.updatePosition(position)
+    }
+    resetRemoteCommands = remoteCommandCenter.configurePlaybackCommands(
+      backwardInterval: Self.backwardInterval,
+      forwardInterval: Self.forwardInterval,
+      play: { [weak self] in self?.play() },
+      pause: { [weak self] in self?.pause() },
+      seek: { [weak self] position in
+        Task { @MainActor in
+          await self?.seek(to: position)
+        }
+      },
+      skipBackward: { [weak self] in self?.skipBackward() },
+      skipForward: { [weak self] in self?.skipForward() }
+    )
   }
 
   private var currentSession: PlaybackSession? {
@@ -185,10 +196,31 @@ public final class AVPlayerPlaybackController: PlaybackControlling {
 
   private func publish(_ state: PlaybackState) {
     self.state = state
-    nowPlayingInfo.update(state)
+    updateNowPlayingInfo(for: state)
     for continuation in changeContinuations.values {
       continuation.yield(state)
     }
+  }
+
+  private func updateNowPlayingInfo(for state: PlaybackState) {
+    guard let session = state.session else {
+      nowPlayingInfoCenter.update(
+        title: nil,
+        podcastTitle: nil,
+        duration: nil,
+        position: nil,
+        isPlaying: false
+      )
+      return
+    }
+
+    nowPlayingInfoCenter.update(
+      title: session.episode.title,
+      podcastTitle: session.episode.podcastTitle,
+      duration: session.episode.duration,
+      position: session.position,
+      isPlaying: state.isPlaying
+    )
   }
 
   private func updatedSession(
@@ -206,5 +238,23 @@ public final class AVPlayerPlaybackController: PlaybackControlling {
     let position = max(position, 0)
     guard let duration, duration.isFinite, duration > 0 else { return position }
     return min(position, duration)
+  }
+}
+
+private extension PlaybackState {
+  var session: PlaybackSession? {
+    switch self {
+    case .idle:
+      nil
+    case .loading(let session), .paused(let session), .playing(let session):
+      session
+    case .failed(let session, _):
+      session
+    }
+  }
+
+  var isPlaying: Bool {
+    if case .playing = self { return true }
+    return false
   }
 }

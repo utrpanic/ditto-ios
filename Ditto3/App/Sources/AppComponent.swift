@@ -1,8 +1,10 @@
+import AVFoundation
 import Discover
 import Episode
 import Latest
 import Library
 import Main
+import MediaPlayer
 import Playback
 import PlaybackImp
 import Platform
@@ -43,7 +45,12 @@ final class AppComponent: @MainActor Dependencies {
     podcastRepository = PodcastRepositoryImp(session: session)
     episodeRepository = EpisodeRepositoryImp(session: session)
     followingRepository = FollowingRepositoryImp(userDefaults: UserDefaults.standard)
-    playbackController = AVPlayerPlaybackController()
+    playbackController = PlaybackControllerImp(
+      player: AVPlayer(),
+      audioSession: AVAudioSession.sharedInstance(),
+      remoteCommandCenter: MPRemoteCommandCenter.shared(),
+      nowPlayingInfoCenter: MPNowPlayingInfoCenter.default()
+    )
   }
 
   @MainActor
