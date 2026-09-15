@@ -23,8 +23,7 @@ struct MainTests {
   @MainActor
   @Test
   func routerAttachesOnePersistentPlayerChild() {
-    let playerViewController = UIViewController()
-    playerViewController.preferredContentSize = CGSize(width: 0, height: 68)
+    let playerViewController = PlayerViewControllerStub()
     let playerBuilder = PlayerBuildableSpy(viewController: playerViewController)
     let dependency = MainDependencyStub(playerBuilder: playerBuilder)
     let interactor = MainInteractor(dependency: dependency)
@@ -37,7 +36,11 @@ struct MainTests {
 
     #expect(playerBuilder.buildCallCount == 1)
     #expect(playerViewController.parent === mainViewController)
-    #expect(playerViewController.view.superview === mainViewController.view)
+    #expect(mainViewController.bottomAccessory == nil)
+
+    playerViewController.setVisible(true)
+
+    #expect(mainViewController.bottomAccessory?.contentView === playerViewController.view)
   }
 }
 
@@ -84,22 +87,36 @@ private struct SearchBuildableStub: SearchBuildable {
 
 private struct PlayerBuildableStub: PlayerBuildable {
   @MainActor
-  func build(listener: PlayerListener?) -> ViewControllable {
-    UIViewController()
+  func build(listener: PlayerListener?) -> PlayerViewControllable {
+    PlayerViewControllerStub()
   }
 }
 
 @MainActor
 private final class PlayerBuildableSpy: PlayerBuildable {
-  private let viewController: ViewControllable
+  private let viewController: PlayerViewControllable
   private(set) var buildCallCount = 0
 
-  init(viewController: ViewControllable) {
+  init(viewController: PlayerViewControllable) {
     self.viewController = viewController
   }
 
-  func build(listener: PlayerListener?) -> ViewControllable {
+  func build(listener: PlayerListener?) -> PlayerViewControllable {
     buildCallCount += 1
     return viewController
+  }
+}
+
+@MainActor
+private final class PlayerViewControllerStub: UIViewController, PlayerViewControllable {
+  private var visibilityObserver: ((Bool) -> Void)?
+
+  func observeVisibility(_ observer: @escaping (Bool) -> Void) {
+    visibilityObserver = observer
+    observer(false)
+  }
+
+  func setVisible(_ isVisible: Bool) {
+    visibilityObserver?(isVisible)
   }
 }

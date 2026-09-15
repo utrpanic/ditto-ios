@@ -1,4 +1,5 @@
 import Combine
+import Player
 import RIBsLite
 import UIKit
 
@@ -22,7 +23,8 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
   private var latestTab: UITab?
   private var libraryTab: UITab?
   private var searchTab: UISearchTab?
-  private var playerViewController: ViewControllable?
+  private var playerViewController: PlayerViewControllable?
+  private var playerAccessory: UITabAccessory?
   
   private var cancellables = Set<AnyCancellable>()
 
@@ -117,21 +119,21 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
     appendTab(tab)
   }
 
-  func attachPlayer(_ viewController: ViewControllable) {
+  func attachPlayer(_ viewController: PlayerViewControllable) {
     guard playerViewController == nil else { return }
     playerViewController = viewController
 
     let playerUI = viewController.ui
     addChild(playerUI)
-    playerUI.view.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(playerUI.view)
-    NSLayoutConstraint.activate([
-      playerUI.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      playerUI.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      playerUI.view.bottomAnchor.constraint(equalTo: tabBar.topAnchor),
-      playerUI.view.heightAnchor.constraint(equalToConstant: playerUI.preferredContentSize.height),
-    ])
+    let accessory = UITabAccessory(contentView: playerUI.view)
+    playerAccessory = accessory
     playerUI.didMove(toParent: self)
+
+    viewController.observeVisibility { [weak self] isVisible in
+      guard let self else { return }
+      guard isVisible != (bottomAccessory != nil) else { return }
+      setBottomAccessory(isVisible ? accessory : nil, animated: view.window != nil)
+    }
   }
 
   private func appendTab(_ tab: UITab) {

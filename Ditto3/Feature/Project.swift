@@ -11,6 +11,7 @@ let project = Project(
       dependencies: [
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
+        .core(target: "Playback"),
       ]
     ),
     .featureUnitTestsTarget(
@@ -19,6 +20,7 @@ let project = Project(
       dependencies: [
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
+        .core(target: "Playback"),
         .target(name: "Episode"),
       ]
     ),

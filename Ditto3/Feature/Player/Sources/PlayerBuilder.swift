@@ -8,7 +8,7 @@ public protocol PlayerDependency {
 
 public final class PlayerBuilder: Builder<PlayerDependency>, PlayerBuildable {
   @MainActor
-  public func build(listener: PlayerListener?) -> ViewControllable {
+  public func build(listener: PlayerListener?) -> PlayerViewControllable {
     let interactor = PlayerInteractor(dependency: dependency)
     let viewController = PlayerViewController(interactor: interactor)
     let router = PlayerRouter(viewController: viewController)

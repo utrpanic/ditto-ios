@@ -3,6 +3,7 @@ import SwiftUI
 
 struct EpisodeView: View {
   let state: EpisodeState
+  let sendAction: (EpisodeAction) -> Void
 
   var body: some View {
     ScrollView {
@@ -12,6 +13,7 @@ struct EpisodeView: View {
 
         titleSection
         metadataSection
+        playbackButton
 
         if let description = episode.description, !description.isEmpty {
           Divider()
@@ -27,6 +29,23 @@ struct EpisodeView: View {
     .background(Color(uiColor: .systemBackground))
     .navigationTitle("Episode")
     .navigationBarTitleDisplayMode(.inline)
+  }
+
+  private var playbackButton: some View {
+    Button {
+      sendAction(.play)
+    } label: {
+      Label(
+        episode.audioURL == nil ? "Audio Unavailable" : "Play Episode",
+        systemImage: "play.fill"
+      )
+      .font(.headline)
+      .frame(maxWidth: .infinity)
+      .frame(height: 50)
+    }
+    .buttonStyle(.borderedProminent)
+    .disabled(episode.audioURL == nil)
+    .accessibilityHint("Starts playback and opens the player controls.")
   }
 
   private var episode: Episode {

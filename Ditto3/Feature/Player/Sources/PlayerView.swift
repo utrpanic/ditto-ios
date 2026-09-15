@@ -36,22 +36,25 @@ struct PlayerView: View {
   }
 
   private func miniPlayer(session: PlaybackSession) -> some View {
-    HStack(spacing: 12) {
-      artwork(url: session.episode.artworkURL, size: 48, cornerRadius: 10)
-
+    HStack(spacing: 10) {
       Button {
         sendAction(.presentExpanded)
       } label: {
-        VStack(alignment: .leading, spacing: 3) {
-          Text(session.episode.title)
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(.primary)
-            .lineLimit(1)
+        HStack(spacing: 10) {
+          artwork(url: session.episode.artworkURL, size: 44, cornerRadius: 7)
 
-          Text(session.episode.podcastTitle)
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
+          VStack(alignment: .leading, spacing: 2) {
+            Text(session.episode.title)
+              .font(.subheadline.weight(.semibold))
+              .foregroundStyle(.primary)
+              .lineLimit(1)
+
+            Text(session.episode.podcastTitle)
+              .font(.caption)
+              .foregroundStyle(.secondary)
+              .lineLimit(1)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
@@ -59,13 +62,35 @@ struct PlayerView: View {
       .buttonStyle(.plain)
 
       playbackButton(size: 18)
+
+      Button {
+        sendAction(.skipForward)
+      } label: {
+        Image(systemName: "goforward.30")
+          .font(.system(size: 19, weight: .medium))
+          .frame(width: 36, height: 44)
+          .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("Skip Forward 30 Seconds")
     }
     .padding(.horizontal, 12)
-    .frame(height: PlayerViewController.miniPlayerHeight)
-    .background(.ultraThinMaterial)
-    .overlay(alignment: .top) {
-      Divider()
+    .padding(.vertical, 8)
+    .overlay(alignment: .bottom) {
+      ProgressView(value: playbackProgress(session))
+        .progressViewStyle(.linear)
+        .tint(.accentColor)
+        .scaleEffect(x: 1, y: 0.5, anchor: .bottom)
     }
+  }
+
+  private func playbackProgress(_ session: PlaybackSession) -> Double {
+    guard let duration = session.episode.duration,
+          duration.isFinite,
+          duration > 0 else {
+      return 0
+    }
+    return min(max(session.position / duration, 0), 1)
   }
 
   private func playbackButton(size: CGFloat) -> some View {

@@ -12,7 +12,7 @@ protocol MainViewControllable: ViewControllable {
   func attachLatestTab(_ viewController: ViewControllable)
   func attachLibraryTab(_ viewController: ViewControllable)
   func attachSearchTab(_ viewController: ViewControllable)
-  func attachPlayer(_ viewController: ViewControllable)
+  func attachPlayer(_ viewController: PlayerViewControllable)
 }
 
 @MainActor
@@ -35,7 +35,7 @@ final class MainRouter: Router<MainViewControllable>, MainRouting {
   private let searchBuilder: SearchBuildable
   private var searchViewController: ViewControllable?
   private let playerBuilder: PlayerBuildable
-  private var playerViewController: ViewControllable?
+  private var playerViewController: PlayerViewControllable?
 
   init(dependency: MainDependency, viewController: MainViewControllable) {
     self.discoverBuilder = dependency.discoverBuilder

@@ -35,7 +35,7 @@
    - 모든 tab 위에 MiniPlayer를 배치한다.
    - expanded Player를 구현한다.
    - tab과 navigation 전환 중 Player가 유지되는지 검증한다.
-10. Episode Playback을 연결한다.
+10. Episode Playback을 연결한다. ✅
     - Episode 상세에 Play action을 추가한다.
     - Podcast, Latest, Search 등 모든 진입점에서 같은 playback flow를 사용한다.
 11. Queue Core Layer를 구현한다.

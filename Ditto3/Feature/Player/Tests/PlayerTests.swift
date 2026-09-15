@@ -27,8 +27,10 @@ struct PlayerTests {
     let interactor = PlayerInteractor(dependency: Dependency(playbackController: playbackController))
     let viewController = PlayerViewController(interactor: interactor)
     viewController.loadViewIfNeeded()
+    var isVisible: Bool?
+    viewController.observeVisibility { isVisible = $0 }
     interactor.activate()
-    #expect(viewController.view.isHidden)
+    #expect(isVisible == false)
     await waitUntil { playbackController.streamCallCount == 1 }
 
     let playbackState = PlaybackState.playing(makeSession())
@@ -36,7 +38,7 @@ struct PlayerTests {
     await waitUntil { interactor.store.state.playback == playbackState }
 
     #expect(interactor.store.state.playback == playbackState)
-    #expect(!viewController.view.isHidden)
+    #expect(isVisible == true)
   }
 
   @MainActor
