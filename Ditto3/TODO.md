@@ -38,7 +38,7 @@
 10. Episode Playback을 연결한다. ✅
     - Episode 상세에 Play action을 추가한다.
     - Podcast, Latest, Search 등 모든 진입점에서 같은 playback flow를 사용한다.
-11. Queue Core Layer를 구현한다.
+11. Queue Core Layer를 구현한다. ✅
     - `QueueItem`과 `PlaybackQueueRepository`를 추가한다.
     - Play Next, 중복 제거, 재정렬, 개별 제거, 전체 제거를 구현한다.
     - Queue persistence와 change stream을 테스트한다.
