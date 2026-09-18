@@ -1,9 +1,11 @@
 import Playback
+import Repository
 import RIBsLite
 
 @MainActor
 public protocol PlayerDependency {
   var playbackController: PlaybackControlling { get }
+  var playbackQueueRepository: PlaybackQueueRepository { get }
 }
 
 public final class PlayerBuilder: Builder<PlayerDependency>, PlayerBuildable {

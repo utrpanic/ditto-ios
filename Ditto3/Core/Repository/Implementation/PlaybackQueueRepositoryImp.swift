@@ -32,6 +32,14 @@ public actor PlaybackQueueRepositoryImp: PlaybackQueueRepository {
     notifyChanges()
   }
 
+  public func addToQueue(_ episode: Episode) throws {
+    var queue = load()
+    queue.removeAll { $0.episode.id == episode.id }
+    queue.append(QueueItem(episode: episode, enqueuedAt: now()))
+    try persist(queue)
+    notifyChanges()
+  }
+
   public func move(episodeID: EpisodeID, to index: Int) throws {
     var queue = load()
     guard let sourceIndex = queue.firstIndex(where: { $0.episode.id == episodeID }) else { return }

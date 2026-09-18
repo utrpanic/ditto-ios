@@ -1,6 +1,7 @@
 import Entity
 import Foundation
 import Playback
+import Repository
 import RIBsLite
 @testable import Player
 import Testing
@@ -82,6 +83,84 @@ struct PlayerTests {
     interactor.sendAction(.presentExpanded)
     #expect(!interactor.store.state.isExpanded)
   }
+
+  @MainActor
+  @Test
+  func queueChangesUpdatePlayerState() async {
+    let item = makeQueueItem(id: "next")
+    let queueRepository = PlaybackQueueRepositorySpy(items: [item])
+    let interactor = PlayerInteractor(dependency: Dependency(
+      playbackQueueRepository: queueRepository
+    ))
+
+    interactor.activate()
+
+    await waitUntil { interactor.store.state.queue == [item] }
+    let laterItem = makeQueueItem(id: "later")
+    await queueRepository.stubItems([laterItem, item])
+    await waitUntil { interactor.store.state.queue == [laterItem, item] }
+    #expect(interactor.store.state.queue == [laterItem, item])
+  }
+
+  @MainActor
+  @Test
+  func queueActionsForwardToRepository() async {
+    let first = makeQueueItem(id: "first")
+    let second = makeQueueItem(id: "second")
+    let queueRepository = PlaybackQueueRepositorySpy(items: [first, second])
+    let interactor = PlayerInteractor(dependency: Dependency(
+      playbackQueueRepository: queueRepository
+    ))
+    interactor.activate()
+    await waitUntil { interactor.store.state.queue == [first, second] }
+
+    interactor.sendAction(.moveQueueItem(first.episode.id, to: 1))
+    await waitUntil { await queueRepository.itemIDs() == [second.episode.id, first.episode.id] }
+
+    interactor.sendAction(.removeQueueItem(second.episode.id))
+    await waitUntil { await queueRepository.itemIDs() == [first.episode.id] }
+
+    interactor.sendAction(.clearQueue)
+    await waitUntil { await queueRepository.itemIDs().isEmpty }
+    #expect(interactor.store.state.queue.isEmpty)
+  }
+
+  @MainActor
+  @Test
+  func selectingQueueItemRemovesItAndStartsPlayback() async {
+    let item = makeQueueItem(id: "next")
+    let playbackController = PlaybackControllerSpy(initialState: .playing(makeSession()))
+    let queueRepository = PlaybackQueueRepositorySpy(items: [item])
+    let interactor = PlayerInteractor(dependency: Dependency(
+      playbackController: playbackController,
+      playbackQueueRepository: queueRepository
+    ))
+    interactor.activate()
+    await waitUntil { interactor.store.state.queue == [item] }
+
+    interactor.sendAction(.playQueueItem(item.episode.id))
+
+    await waitUntil { playbackController.playedEpisode == item.episode }
+    #expect(await queueRepository.itemIDs().isEmpty)
+  }
+
+  @MainActor
+  @Test
+  func queueMutationFailureKeepsSnapshotAndPublishesMessage() async {
+    let item = makeQueueItem(id: "next")
+    let queueRepository = PlaybackQueueRepositorySpy(items: [item], failsMutations: true)
+    let interactor = PlayerInteractor(dependency: Dependency(
+      playbackQueueRepository: queueRepository
+    ))
+    interactor.activate()
+    await waitUntil { interactor.store.state.queue == [item] }
+
+    interactor.sendAction(.removeQueueItem(item.episode.id))
+
+    await waitUntil { interactor.store.state.queueFailureMessage != nil }
+    #expect(interactor.store.state.queue == [item])
+    #expect(await queueRepository.itemIDs() == [item.episode.id])
+  }
 }
 
 private func makeSession() -> PlaybackSession {
@@ -99,10 +178,23 @@ private func makeSession() -> PlaybackSession {
   )
 }
 
+private func makeQueueItem(id: String) -> QueueItem {
+  QueueItem(
+    episode: Episode(
+      id: EpisodeID(id),
+      podcastTitle: "Architecture Talks",
+      title: "Queue \(id)",
+      feedURL: URL(string: "https://example.com/feed.xml")!,
+      audioURL: URL(string: "https://example.com/\(id).mp3")
+    ),
+    enqueuedAt: Date(timeIntervalSince1970: 1_000)
+  )
+}
+
 @MainActor
-private func waitUntil(_ condition: () -> Bool) async {
+private func waitUntil(_ condition: () async -> Bool) async {
   for _ in 0..<1_000 {
-    guard !condition() else { return }
+    guard !(await condition()) else { return }
     await Task.yield()
   }
 }
@@ -110,9 +202,14 @@ private func waitUntil(_ condition: () -> Bool) async {
 @MainActor
 private struct Dependency: PlayerDependency {
   let playbackController: PlaybackControlling
+  let playbackQueueRepository: PlaybackQueueRepository
 
-  init(playbackController: PlaybackControlling? = nil) {
+  init(
+    playbackController: PlaybackControlling? = nil,
+    playbackQueueRepository: PlaybackQueueRepository? = nil
+  ) {
     self.playbackController = playbackController ?? PlaybackControllerSpy()
+    self.playbackQueueRepository = playbackQueueRepository ?? PlaybackQueueRepositorySpy()
   }
 }
 
@@ -126,12 +223,15 @@ private final class PlaybackControllerSpy: PlaybackControlling {
   private(set) var skipForwardCallCount = 0
   private(set) var seekPositions: [TimeInterval] = []
   private(set) var streamCallCount = 0
+  private(set) var playedEpisode: Episode?
 
   init(initialState: PlaybackState = .idle) {
     self.initialState = initialState
   }
 
-  func play(_ episode: Episode) async {}
+  func play(_ episode: Episode) async {
+    playedEpisode = episode
+  }
 
   func play() {
     playCallCount += 1
@@ -164,6 +264,78 @@ private final class PlaybackControllerSpy: PlaybackControlling {
   func emit(_ state: PlaybackState) {
     for continuation in continuations {
       continuation.yield(state)
+    }
+  }
+}
+
+private actor PlaybackQueueRepositorySpy: PlaybackQueueRepository {
+  private enum MutationError: Error {
+    case failed
+  }
+
+  private var items: [QueueItem]
+  private let failsMutations: Bool
+  private var continuations: [AsyncStream<Void>.Continuation] = []
+
+  init(items: [QueueItem] = [], failsMutations: Bool = false) {
+    self.items = items
+    self.failsMutations = failsMutations
+  }
+
+  func fetchQueue() -> [QueueItem] { items }
+
+  func playNext(_ episode: Episode) throws {
+    if failsMutations { throw MutationError.failed }
+    items.removeAll { $0.episode.id == episode.id }
+    items.insert(QueueItem(episode: episode, enqueuedAt: Date()), at: 0)
+    emitChange()
+  }
+
+  func addToQueue(_ episode: Episode) throws {
+    if failsMutations { throw MutationError.failed }
+    items.removeAll { $0.episode.id == episode.id }
+    items.append(QueueItem(episode: episode, enqueuedAt: Date()))
+    emitChange()
+  }
+
+  func move(episodeID: EpisodeID, to index: Int) throws {
+    if failsMutations { throw MutationError.failed }
+    guard let sourceIndex = items.firstIndex(where: { $0.episode.id == episodeID }) else { return }
+    let item = items.remove(at: sourceIndex)
+    items.insert(item, at: min(max(index, 0), items.count))
+    emitChange()
+  }
+
+  func remove(episodeID: EpisodeID) throws {
+    if failsMutations { throw MutationError.failed }
+    items.removeAll { $0.episode.id == episodeID }
+    emitChange()
+  }
+
+  func removeAll() throws {
+    if failsMutations { throw MutationError.failed }
+    items = []
+    emitChange()
+  }
+
+  func changes() -> AsyncStream<Void> {
+    AsyncStream { continuation in
+      continuations.append(continuation)
+    }
+  }
+
+  func stubItems(_ items: [QueueItem]) {
+    self.items = items
+    emitChange()
+  }
+
+  func itemIDs() -> [EpisodeID] {
+    items.map(\.episode.id)
+  }
+
+  private func emitChange() {
+    for continuation in continuations {
+      continuation.yield(())
     }
   }
 }

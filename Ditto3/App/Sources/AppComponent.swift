@@ -29,6 +29,7 @@ final class AppComponent: @MainActor Dependencies {
   let podcastRepository: PodcastRepository
   let episodeRepository: EpisodeRepository
   let followingRepository: FollowingRepository
+  let playbackQueueRepository: PlaybackQueueRepository
   let playbackController: PlaybackControlling
 
   var mainBuilder: MainBuildable { MainBuilder(dependency: self) }
@@ -45,6 +46,7 @@ final class AppComponent: @MainActor Dependencies {
     podcastRepository = PodcastRepositoryImp(session: session)
     episodeRepository = EpisodeRepositoryImp(session: session)
     followingRepository = FollowingRepositoryImp(userDefaults: UserDefaults.standard)
+    playbackQueueRepository = PlaybackQueueRepositoryImp(userDefaults: UserDefaults.standard)
     playbackController = PlaybackControllerImp(
       player: AVPlayer(),
       audioSession: AVAudioSession.sharedInstance(),

@@ -19,13 +19,13 @@ viewless Riblet은 지원하지 않는다. 화면이 없는 domain behavior는 R
 Podcast -> Episode
 Podcast -> Follow -> Library
 Followed Podcasts -> Latest Episodes
-Episode -> Play / Play Next -> Player Queue
+Episode -> Play / Play Next / Add to Queue -> Player Queue
 ```
 
 - Podcast만 Follow한다.
 - Episode는 Keep하지 않는다.
 - Latest는 Follow와 remote feed에서 파생한다.
-- Queue는 `Play Next`로 명시적으로 구성한다.
+- Queue는 `Play Next`와 `Add to Queue`로 명시적으로 구성한다.
 - Follow 상태, Latest, Queue, playback session은 서로 다른 책임이다.
 
 ## 3. Module Boundaries
@@ -156,6 +156,7 @@ Podcast와 Episode Builder는 진입한 parent feature와 무관하게 동일한
 - Episode metadata 표시
 - Play
 - Play Next
+- Add to Queue
 
 ### Player
 
@@ -233,6 +234,7 @@ public protocol FollowingRepository {
 public protocol PlaybackQueueRepository {
   func fetchQueue() async throws -> [QueueItem]
   func playNext(_ episode: Episode) async throws
+  func addToQueue(_ episode: Episode) async throws
   func move(episodeID: EpisodeID, to index: Int) async throws
   func remove(episodeID: EpisodeID) async throws
   func removeAll() async throws
@@ -240,7 +242,7 @@ public protocol PlaybackQueueRepository {
 }
 ```
 
-`playNext`는 EpisodeID 기준으로 기존 항목을 제거한 뒤 Queue의 첫 위치에 삽입한다.
+`playNext`는 EpisodeID 기준으로 기존 항목을 제거한 뒤 Queue의 첫 위치에 삽입한다. `addToQueue`는 같은 방식으로 중복을 제거한 뒤 마지막 위치에 삽입한다.
 
 ### PlaybackSessionRepository
 
@@ -333,7 +335,7 @@ User taps Follow in Podcast
 
 Podcast VC가 어느 entry point에서 생성됐는지에 관계없이 같은 동작을 사용한다.
 
-## 12. Play and Play Next Flows
+## 12. Play and Queue Flows
 
 ### Play
 
@@ -354,6 +356,15 @@ User taps Play Next
 -> if no current session, start the Episode immediately
 -> otherwise PlaybackQueueRepository.playNext(episode)
 -> deduplicate and place at queue index 0
+-> Player reloads Queue
+```
+
+### Add to Queue
+
+```text
+User taps Add to Queue
+-> PlaybackQueueRepository.addToQueue(episode)
+-> deduplicate and place at the end of Queue
 -> Player reloads Queue
 ```
 
@@ -396,11 +407,11 @@ Following, Queue, PlaybackSession은 version을 포함한 JSON snapshot으로 lo
 ### Unit Tests
 
 - FollowingRepository follow/unfollow/idempotency/persistence
-- PlaybackQueueRepository playNext/deduplication/reorder/removal/persistence
+- PlaybackQueueRepository playNext/addToQueue/deduplication/reorder/removal/persistence
 - PlaybackSessionRepository save/load/clear/version handling
 - Latest partial aggregation, deduplication, sorting, limit
 - Podcast follow optimistic update and rollback
-- Episode Play/Play Next action forwarding
+- Episode Play/Play Next/Add to Queue action forwarding
 - Player state transition and resume behavior
 
 ### Feature Composition Tests
@@ -415,7 +426,7 @@ Following, Queue, PlaybackSession은 version을 포함한 JSON snapshot으로 lo
 
 1. Follow a Podcast in Search and verify Library/Latest.
 2. Open the same Podcast from Library and verify Follow state.
-3. Open an Episode from Latest, use Play Next, and verify Player Queue.
+3. Open an Episode from Latest, use Play Next and Add to Queue, and verify Player Queue.
 4. Start playback, switch tabs, and verify MiniPlayer continuity.
 5. Terminate and relaunch the app, then resume from the saved position.
 
@@ -425,7 +436,7 @@ Following, Queue, PlaybackSession은 version을 포함한 JSON snapshot으로 lo
 2. Implement Library and Latest features.
 3. Add Playback interface and AVPlayer adapter.
 4. Attach persistent Player to Main.
-5. Implement Queue and Play Next.
+5. Implement Queue, Play Next, and Add to Queue.
 6. Add playback session persistence and resume.
 
 Each step should remain a focused commit and preserve a buildable project.

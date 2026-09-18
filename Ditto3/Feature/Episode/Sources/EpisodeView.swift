@@ -13,7 +13,14 @@ struct EpisodeView: View {
 
         titleSection
         metadataSection
-        playbackButton
+        playbackActions
+
+        if let queueMessage = state.queueMessage {
+          Text(queueMessage)
+            .font(.footnote.weight(.medium))
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity)
+        }
 
         if let description = episode.description, !description.isEmpty {
           Divider()
@@ -31,21 +38,45 @@ struct EpisodeView: View {
     .navigationBarTitleDisplayMode(.inline)
   }
 
-  private var playbackButton: some View {
-    Button {
-      sendAction(.play)
-    } label: {
-      Label(
-        episode.audioURL == nil ? "Audio Unavailable" : "Play Episode",
-        systemImage: "play.fill"
-      )
-      .font(.headline)
-      .frame(maxWidth: .infinity)
-      .frame(height: 50)
+  private var playbackActions: some View {
+    HStack(spacing: 0) {
+      Button {
+        sendAction(.play)
+      } label: {
+        Label(
+          episode.audioURL == nil ? "Unavailable" : "Play",
+          systemImage: "play.fill"
+        )
+        .frame(maxWidth: .infinity)
+        .frame(height: 50)
+      }
+      .buttonStyle(.plain)
+
+      Divider()
+        .overlay(.white.opacity(0.35))
+        .frame(height: 28)
+
+      Menu {
+        Button("Play Next", systemImage: "text.line.first.and.arrowtriangle.forward") {
+          sendAction(.playNext)
+        }
+
+        Button("Add to Queue", systemImage: "text.badge.plus") {
+          sendAction(.addToQueue)
+        }
+      } label: {
+        Image(systemName: "chevron.down")
+          .font(.subheadline.weight(.bold))
+          .frame(width: 52)
+          .frame(height: 50)
+      }
+      .accessibilityLabel("Queue Options")
     }
-    .buttonStyle(.borderedProminent)
+    .font(.headline)
+    .foregroundStyle(.white)
+    .background(.tint)
+    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     .disabled(episode.audioURL == nil)
-    .accessibilityHint("Starts playback and opens the player controls.")
   }
 
   private var episode: Episode {

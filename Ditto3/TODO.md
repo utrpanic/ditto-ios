@@ -40,10 +40,10 @@
     - Podcast, Latest, Search 등 모든 진입점에서 같은 playback flow를 사용한다.
 11. Queue Core Layer를 구현한다. ✅
     - `QueueItem`과 `PlaybackQueueRepository`를 추가한다.
-    - Play Next, 중복 제거, 재정렬, 개별 제거, 전체 제거를 구현한다.
+    - Play Next, Add to Queue, 중복 제거, 재정렬, 개별 제거, 전체 제거를 구현한다.
     - Queue persistence와 change stream을 테스트한다.
-12. Queue UI와 Play Next를 연결한다.
-    - Episode 상세에 Play Next action을 추가한다.
+12. Queue UI와 Queue action을 연결한다. ✅
+    - Episode 상세에 Play Next와 Add to Queue action을 추가한다.
     - expanded Player 안에 Queue를 표시한다.
     - Queue 선택, 재정렬, 제거를 연결한다.
 13. Resume Playback을 구현한다.
@@ -55,5 +55,5 @@
     - Podcast feature의 Discover, Search, Library 진입을 검증한다.
     - Episode feature의 Podcast, Latest, Search, Queue 진입을 검증한다.
     - Follow 변경이 Library와 Latest에 반영되는지 검증한다.
-    - Play Next가 persistent Player와 Queue에 반영되는지 검증한다.
+    - Play Next와 Add to Queue가 persistent Player와 Queue에 반영되는지 검증한다.
     - Interactor activation/deactivation과 stream observation 수명을 검증한다.

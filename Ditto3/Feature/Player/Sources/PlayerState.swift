@@ -4,6 +4,8 @@ import Playback
 struct PlayerState: Equatable {
   var playback: PlaybackState = .idle
   var isExpanded = false
+  var queue: [QueueItem] = []
+  var queueFailureMessage: String?
 
   var session: PlaybackSession? {
     switch playback {

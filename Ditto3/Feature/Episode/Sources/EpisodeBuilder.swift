@@ -1,9 +1,11 @@
 import Entity
 import Playback
+import Repository
 import RIBsLite
 
 public protocol EpisodeDependency {
   var playbackController: PlaybackControlling { get }
+  var playbackQueueRepository: PlaybackQueueRepository { get }
 }
 
 public final class EpisodeBuilder: Builder<EpisodeDependency>, EpisodeBuildable {

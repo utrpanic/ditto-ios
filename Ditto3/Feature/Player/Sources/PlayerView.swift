@@ -155,6 +155,8 @@ private struct ExpandedPlayerView: View {
             .foregroundStyle(.red)
             .multilineTextAlignment(.center)
         }
+
+        queueSection
       }
       .padding(.horizontal, 28)
       .padding(.vertical, 24)
@@ -268,6 +270,129 @@ private struct ExpandedPlayerView: View {
       .accessibilityLabel("Skip Forward 30 Seconds")
     }
     .buttonStyle(.plain)
+  }
+
+  private var queueSection: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      Divider()
+
+      HStack {
+        VStack(alignment: .leading, spacing: 2) {
+          Text("Queue")
+            .font(.title3.bold())
+          Text(queueSubtitle)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+
+        Spacer()
+
+        if !state.queue.isEmpty {
+          Button("Clear") {
+            sendAction(.clearQueue)
+          }
+          .font(.subheadline.weight(.semibold))
+        }
+      }
+
+      if state.queue.isEmpty {
+        ContentUnavailableView(
+          "Queue Is Empty",
+          systemImage: "text.line.first.and.arrowtriangle.forward",
+          description: Text("Use Play Next or Add to Queue on an episode.")
+        )
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+      } else {
+        ForEach(Array(state.queue.enumerated()), id: \.element.episode.id) { index, item in
+          queueRow(item, at: index)
+          if index < state.queue.count - 1 {
+            Divider().padding(.leading, 54)
+          }
+        }
+      }
+
+      if let message = state.queueFailureMessage {
+        Text(message)
+          .font(.footnote)
+          .foregroundStyle(.red)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
+  private func queueRow(_ item: QueueItem, at index: Int) -> some View {
+    HStack(spacing: 10) {
+      Button {
+        sendAction(.playQueueItem(item.episode.id))
+      } label: {
+        HStack(spacing: 10) {
+          AsyncImage(url: item.episode.artworkURL) { image in
+            image
+              .resizable()
+              .scaledToFill()
+          } placeholder: {
+            ZStack {
+              RoundedRectangle(cornerRadius: 7, style: .continuous)
+                .fill(Color(uiColor: .secondarySystemBackground))
+              Image(systemName: "waveform")
+                .foregroundStyle(.secondary)
+            }
+          }
+          .frame(width: 44, height: 44)
+          .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+
+          VStack(alignment: .leading, spacing: 2) {
+            Text(item.episode.title)
+              .font(.subheadline.weight(.semibold))
+              .foregroundStyle(.primary)
+              .lineLimit(2)
+            Text(item.episode.podcastTitle)
+              .font(.caption)
+              .foregroundStyle(.secondary)
+              .lineLimit(1)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+
+      Menu {
+        Button("Move Up", systemImage: "arrow.up") {
+          sendAction(.moveQueueItem(item.episode.id, to: index - 1))
+        }
+        .disabled(index == 0)
+
+        Button("Move Down", systemImage: "arrow.down") {
+          sendAction(.moveQueueItem(item.episode.id, to: index + 1))
+        }
+        .disabled(index == state.queue.count - 1)
+
+        Divider()
+
+        Button("Remove", systemImage: "trash", role: .destructive) {
+          sendAction(.removeQueueItem(item.episode.id))
+        }
+      } label: {
+        Image(systemName: "ellipsis")
+          .font(.headline)
+          .frame(width: 40, height: 44)
+          .contentShape(Rectangle())
+      }
+      .accessibilityLabel("Queue Options")
+    }
+  }
+
+  private var queueSubtitle: String {
+    switch state.queue.count {
+    case 0:
+      "No episodes"
+    case 1:
+      "1 episode"
+    default:
+      "\(state.queue.count) episodes"
+    }
   }
 
   private var positionBinding: Binding<Double> {

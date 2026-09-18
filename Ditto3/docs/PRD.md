@@ -15,6 +15,7 @@ Ditto3는 특정 시장성과 사용성 지표를 검증하기 위한 제품이 
 - **Latest:** Follow한 Podcast에서 수집한 최신 Episode의 통합 피드
 - **Queue:** 현재 Episode 다음에 재생할 Episode의 명시적 순서
 - **Play Next:** 선택한 Episode를 Queue의 최상단에 배치하는 행위
+- **Add to Queue:** 선택한 Episode를 Queue의 마지막에 배치하는 행위
 - **Player:** 현재 재생, Queue, 이어 듣기 상태를 소유하는 기능
 
 `Show`, `Bookmark`, `Keep`, `Saved Episode`, `Subscription`, `Playlist`는 같은 개념을 가리키는 대체 용어로 사용하지 않는다. 유료 상품과 혼동할 수 있는 `Subscription` 대신 `Follow`를 사용하고, 재생 순서는 `Queue`로 부른다.
@@ -27,7 +28,7 @@ Ditto3의 기본 관계는 다음과 같다.
 Podcast -> Episode
 Podcast -> Follow -> Library
 Followed Podcasts -> Latest Episodes
-Episode -> Play / Play Next -> Player Queue
+Episode -> Play / Play Next / Add to Queue -> Player Queue
 ```
 
 Podcast가 Follow 대상이고 Episode가 재생 대상이다. Episode를 별도로 Keep하거나 Library에 저장하지 않는다.
@@ -35,7 +36,7 @@ Podcast가 Follow 대상이고 Episode가 재생 대상이다. Episode를 별도
 Latest와 Queue는 다른 목록이다.
 
 - Latest는 Follow 상태와 remote feed에서 파생된다.
-- Queue는 사용자의 `Play Next` 입력으로 생성된다.
+- Queue는 사용자의 `Play Next`와 `Add to Queue` 입력으로 생성된다.
 - Podcast를 Unfollow해도 이미 Queue에 들어간 Episode는 제거하지 않는다.
 
 ## 4. Information Architecture
@@ -103,7 +104,9 @@ Latest와 Queue는 다른 목록이다.
 - title, Podcast title, artwork, description, publish date, duration을 가능한 범위에서 표시한다.
 - `Play`는 선택한 Episode를 즉시 재생한다.
 - `Play Next`는 현재 Episode 바로 다음 위치에 추가한다.
+- `Add to Queue`는 Queue의 마지막 위치에 추가한다.
 - 이미 Queue에 있는 Episode에 `Play Next`를 실행하면 중복하지 않고 최상단으로 이동한다.
+- 이미 Queue에 있는 Episode에 `Add to Queue`를 실행하면 중복하지 않고 마지막으로 이동한다.
 - Episode Keep 또는 Save action은 제공하지 않는다.
 
 ### 5.7 Player and Queue
@@ -117,6 +120,7 @@ Latest와 Queue는 다른 목록이다.
 - Episode가 완료되면 Queue의 다음 Episode를 재생한다.
 - Queue와 현재 재생 session은 앱 재실행 후에도 유지된다.
 - 현재 재생 Episode가 없을 때 `Play Next`를 실행하면 해당 Episode를 즉시 재생한다.
+- 현재 재생 Episode가 없어도 `Add to Queue`는 Episode를 Queue에 저장하며 자동 재생하지 않는다.
 
 ### 5.8 Resume Playback
 
@@ -134,7 +138,7 @@ Latest와 Queue는 다른 목록이다.
 ## 6. Product Rules
 
 - Podcast는 Follow 대상이다.
-- Episode는 Play와 Play Next 대상이다.
+- Episode는 Play, Play Next, Add to Queue 대상이다.
 - Latest는 자동 생성 피드이고 Queue는 명시적 사용자 입력이다.
 - Queue 항목과 Follow 상태는 서로 독립적이다.
 - remote metadata가 없으면 값을 임의로 생성하지 않는다.
@@ -148,7 +152,7 @@ Latest와 Queue는 다른 목록이다.
 1. Podcast feature가 Discover, Search, Library에서 동일하게 재사용된다.
 2. Episode feature가 Podcast, Latest, Search, Queue에서 동일하게 재사용된다.
 3. 한 화면의 Follow 변경이 Library, Latest, 다른 Podcast 상세에 반영된다.
-4. Episode의 Play 또는 Play Next가 root-level Player에 반영된다.
+4. Episode의 Play, Play Next, Add to Queue가 root-level Player에 반영된다.
 5. Player가 tab 전환과 feature navigation 중에도 유지된다.
 6. MiniPlayer와 expanded Player가 하나의 playback state를 공유한다.
 7. 앱 재실행 후 Follow, Queue, 현재 Episode, 재생 위치가 복원된다.
@@ -165,7 +169,7 @@ Latest와 Queue는 다른 목록이다.
 - Podcast/Episode search
 - Podcast/Episode detail
 - audio streaming playback
-- Play Next와 Queue 관리
+- Play Next, Add to Queue와 Queue 관리
 - current playback 및 position 복원
 - loading, empty, partial failure, failure 상태
 - local persistence

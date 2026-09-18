@@ -58,6 +58,25 @@ struct PlaybackQueueRepositoryImpTests {
   }
 
   @Test
+  func addToQueueAppendsAndMovesExistingEpisodeToEnd() async throws {
+    let repository = PlaybackQueueRepositoryImp(userDefaults: UserDefaultsMock())
+    let firstEpisode = makeEpisode(id: "first")
+    let secondEpisode = makeEpisode(id: "second")
+
+    try await repository.addToQueue(firstEpisode)
+    try await repository.addToQueue(secondEpisode)
+    #expect(try await repository.fetchQueue().map(\.episode.id) == [
+      firstEpisode.id, secondEpisode.id,
+    ])
+
+    try await repository.addToQueue(firstEpisode)
+    #expect(try await repository.fetchQueue().map(\.episode.id) == [
+      secondEpisode.id, firstEpisode.id,
+    ])
+    #expect(try await repository.fetchQueue().count == 2)
+  }
+
+  @Test
   func moveUsesFinalDestinationIndexAndPreservesItemSnapshot() async throws {
     let repository = PlaybackQueueRepositoryImp(userDefaults: UserDefaultsMock())
     let firstEpisode = makeEpisode(id: "first")

@@ -12,6 +12,7 @@ let project = Project(
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Playback"),
+        .core(target: "Repository"),
       ]
     ),
     .featureUnitTestsTarget(
@@ -21,6 +22,7 @@ let project = Project(
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Playback"),
+        .core(target: "Repository"),
         .target(name: "Episode"),
       ]
     ),
@@ -81,6 +83,7 @@ let project = Project(
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Playback"),
+        .core(target: "Repository"),
       ]
     ),
     .featureUnitTestsTarget(
@@ -90,6 +93,7 @@ let project = Project(
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Playback"),
+        .core(target: "Repository"),
         .target(name: "Player"),
       ]
     ),
