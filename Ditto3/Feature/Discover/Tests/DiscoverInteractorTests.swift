@@ -3,9 +3,9 @@ import Foundation
 import Podcast
 import Repository
 import RIBsLite
-@testable import Discover
 import Testing
 import UIKit
+@testable import Discover
 
 struct DiscoverInteractorTests {
   @MainActor

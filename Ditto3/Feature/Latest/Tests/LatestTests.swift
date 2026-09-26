@@ -3,9 +3,9 @@ import Episode
 import Foundation
 import Repository
 import RIBsLite
-@testable import Latest
 import Testing
 import UIKit
+@testable import Latest
 
 struct LatestTests {
   @MainActor

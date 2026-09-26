@@ -2,8 +2,8 @@ import Entity
 import Foundation
 import Platform
 import PlatformTestSupport
-@testable import RepositoryImp
 import Testing
+@testable import RepositoryImp
 
 struct EpisodeRepositoryImpTests {
   @Test

@@ -1,8 +1,8 @@
 import Entity
 import Foundation
 import PlatformTestSupport
-@testable import RepositoryImp
 import Testing
+@testable import RepositoryImp
 
 struct FollowingRepositoryImpTests {
   @Test

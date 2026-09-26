@@ -1,0 +1,6 @@
+--indent 2
+--importgrouping testable-bottom
+
+--rules sortImports
+
+--exclude .build,Derived

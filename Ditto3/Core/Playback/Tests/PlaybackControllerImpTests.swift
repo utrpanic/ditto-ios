@@ -2,8 +2,8 @@ import Entity
 import Foundation
 import PlatformTestSupport
 import Playback
-@testable import PlaybackImp
 import Testing
+@testable import PlaybackImp
 
 struct PlaybackControllerImpTests {
   @MainActor

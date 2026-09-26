@@ -3,8 +3,8 @@ import Foundation
 import Playback
 import Repository
 import RIBsLite
-@testable import Player
 import Testing
+@testable import Player
 
 struct PlayerTests {
   @MainActor

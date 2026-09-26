@@ -3,9 +3,9 @@ import Episode
 import Podcast
 import Repository
 import RIBsLite
-@testable import Search
 import Testing
 import UIKit
+@testable import Search
 
 struct SearchTests {
   @MainActor

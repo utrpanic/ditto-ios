@@ -1,9 +1,9 @@
 import Entity
-@testable import Episode
 import Foundation
 import Playback
 import Repository
 import Testing
+@testable import Episode
 
 struct EpisodeBuilderTests {
   @MainActor

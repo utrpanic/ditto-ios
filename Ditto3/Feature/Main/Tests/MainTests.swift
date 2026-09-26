@@ -1,14 +1,14 @@
-import Entity
-import Repository
 import Discover
+import Entity
 import Latest
 import Library
-@testable import Main
 import Player
+import Repository
 import RIBsLite
 import Search
 import Testing
 import UIKit
+@testable import Main
 
 struct MainTests {
   @MainActor

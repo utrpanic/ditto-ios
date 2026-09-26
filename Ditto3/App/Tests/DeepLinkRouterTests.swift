@@ -1,4 +1,3 @@
-@testable import App
 import Entity
 import Episode
 import FeatureTestSupport
@@ -7,6 +6,7 @@ import Main
 import Podcast
 import RIBsLite
 import Testing
+@testable import App
 
 @MainActor
 struct DeepLinkRouterTests {

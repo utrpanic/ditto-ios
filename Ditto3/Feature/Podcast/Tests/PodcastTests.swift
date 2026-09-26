@@ -3,9 +3,9 @@ import Episode
 import Foundation
 import Repository
 import RIBsLite
-@testable import Podcast
 import Testing
 import UIKit
+@testable import Podcast
 
 struct PodcastTests {
   @MainActor

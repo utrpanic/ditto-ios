@@ -2,9 +2,9 @@ import Entity
 import Foundation
 import Platform
 import PlatformTestSupport
+import Testing
 @testable import Repository
 @testable import RepositoryImp
-import Testing
 
 struct PodcastRepositoryImpTests {
   @Test
