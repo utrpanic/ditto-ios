@@ -1,19 +1,20 @@
 import SwiftUI
 import UIKit
 
-struct _TemplateView<Interactor: _TemplateInteractable>: View {
-  @ObservedObject var interactor: Interactor
+struct _TemplateView: View {
+  let state: _TemplateState
+  let sendAction: (_TemplateAction) -> Void
 
   var body: some View {
     VStack(spacing: 16) {
-      Text(interactor.state.title)
+      Text(state.title)
         .font(.title2.weight(.medium))
 
-      Text("count: \(interactor.state.count)")
+      Text("count: \(state.count)")
         .font(.body.monospacedDigit())
 
       Button("Count Up") {
-        interactor.didTapCountUp()
+        sendAction(.countUp)
       }
       .buttonStyle(.borderedProminent)
     }
@@ -22,10 +23,6 @@ struct _TemplateView<Interactor: _TemplateInteractable>: View {
   }
 }
 
-//#Preview {
-//  _TemplateView(interactor: _TemplateInteractor(dependency: PreviewDependency()))
-//}
-//
-//private struct PreviewDependency: _TemplateDependency {
-//  let _templateRepository: _TemplateRepository = _TemplateRepositoryImp()
-//}
+#Preview {
+  _TemplateView(state: _TemplateState(), sendAction: { _ in })
+}

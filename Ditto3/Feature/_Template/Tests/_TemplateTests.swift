@@ -1,7 +1,7 @@
-@testable import _Template
 import Repository
 import RepositoryImp
 import Testing
+@testable import _Template
 
 struct _TemplateTests {
   @MainActor

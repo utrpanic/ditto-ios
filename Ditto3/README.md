@@ -7,5 +7,5 @@
 ## Project setup
 
 - [Install `mise` CLI](https://mise.jdx.dev/getting-started.html#installing-mise-cli).
-- Generate: `./tuist-generate.sh`
-- Clean + regenerate: `./tuist-generate.sh --clean`
+- Run `./setup.sh` or `./setup.sh --no-open`.
+- Run `./build.sh` or pass extra `xcodebuild` arguments such as `./build.sh -scheme Feature`.

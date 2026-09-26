@@ -18,6 +18,10 @@ extension UserDefaults: UserDefaultsProtocol {
     set(value, forKey: key)
   }
 
+  public func set(value: Data?, forKey key: String) {
+    set(value, forKey: key)
+  }
+
   public func set<T>(value: [T]?, forKey key: String) {
     set(value, forKey: key)
   }

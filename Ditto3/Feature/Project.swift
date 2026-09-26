@@ -5,59 +5,195 @@ let project = Project(
   name: "Feature",
   options: .default,
   targets: [
-    // .featureFrameworkTarget(
-    //   name: "Bookmarks",
-    //   sourcesPath: "Bookmarks/Sources",
-    //   resourcesPath: "Bookmarks/Resources",
-    //   dependencies: [
-    //     .core(target: "Entity"),
-    //     .core(target: "Repository"),
-    //   ]
-    // ),
-    // .featureFrameworkTarget(
-    //   name: "New",
-    //   sourcesPath: "New/Sources",
-    //   resourcesPath: "New/Resources",
-    //   dependencies: [
-    //     .core(target: "Entity"),
-    //     .core(target: "Repository"),
-    //   ]
-    // ),
-    // .featureFrameworkTarget(
-    //   name: "Podcast",
-    //   sourcesPath: "Podcast/Sources",
-    //   resourcesPath: "Podcast/Resources",
-    //   dependencies: [
-    //     .core(target: "Entity"),
-    //     .core(target: "Repository"),
-    //   ]
-    // ),
-    // .featureFrameworkTarget(
-    //   name: "Search",
-    //   sourcesPath: "Search/Sources",
-    //   resourcesPath: "Search/Resources",
-    //   dependencies: [
-    //     .core(target: "Entity"),
-    //     .core(target: "Repository"),
-    //     .target(name: "Podcast"),
-    //   ]
-    // ),
-    .featureFrameworkTarget(
-      name: "TopPodcasts",
-      sourcesPath: "TopPodcasts/Sources",
-      resourcesPath: "TopPodcasts/Resources",
+    .featureTarget(
+      name: "Episode",
+      sourcePath: "Episode/Sources",
       dependencies: [
+        .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
+        .core(target: "Playback"),
         .core(target: "Repository"),
       ]
     ),
     .featureUnitTestsTarget(
-      name: "TopPodcastsTests",
-      sourcesPath: "TopPodcasts/Tests",
+      name: "EpisodeTests",
+      sourcePath: "Episode/Tests",
       dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .core(target: "Playback"),
+        .core(target: "Repository"),
+        .target(name: "Episode"),
+      ]
+    ),
+    .featureTarget(
+      name: "Library",
+      sourcePath: "Library/Sources",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .core(target: "Repository"),
-        .target(name: "TopPodcasts"),
+        .target(name: "Podcast"),
+      ]
+    ),
+    .featureUnitTestsTarget(
+      name: "LibraryTests",
+      sourcePath: "Library/Tests",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "Podcast"),
+        .target(name: "Library"),
+      ]
+    ),
+    .featureTarget(
+      name: "Main",
+      sourcePath: "Main/Sources",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "Discover"),
+        .target(name: "Latest"),
+        .target(name: "Library"),
+        .target(name: "Player"),
+        .target(name: "Search"),
+      ]
+    ),
+    .featureUnitTestsTarget(
+      name: "MainTests",
+      sourcePath: "Main/Tests",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "Discover"),
+        .target(name: "Main"),
+        .target(name: "Latest"),
+        .target(name: "Library"),
+        .target(name: "Player"),
+        .target(name: "Search"),
+      ]
+    ),
+    .featureTarget(
+      name: "Player",
+      sourcePath: "Player/Sources",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .core(target: "Playback"),
+        .core(target: "Repository"),
+        .target(name: "Episode"),
+      ]
+    ),
+    .featureUnitTestsTarget(
+      name: "PlayerTests",
+      sourcePath: "Player/Tests",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .core(target: "Playback"),
+        .core(target: "Repository"),
+        .target(name: "Episode"),
+        .target(name: "Player"),
+      ]
+    ),
+    .featureTarget(
+      name: "Latest",
+      sourcePath: "Latest/Sources",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "Episode"),
+      ]
+    ),
+    .featureUnitTestsTarget(
+      name: "LatestTests",
+      sourcePath: "Latest/Tests",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "Episode"),
+        .target(name: "Latest"),
+      ]
+    ),
+    .featureTarget(
+      name: "Podcast",
+      sourcePath: "Podcast/Sources",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "Episode"),
+      ]
+    ),
+    .featureUnitTestsTarget(
+      name: "PodcastTests",
+      sourcePath: "Podcast/Tests",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "Episode"),
+        .target(name: "Podcast"),
+      ]
+    ),
+    .featureTarget(
+      name: "Search",
+      sourcePath: "Search/Sources",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "Episode"),
+        .target(name: "Podcast"),
+      ]
+    ),
+    .featureUnitTestsTarget(
+      name: "SearchTests",
+      sourcePath: "Search/Tests",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "Episode"),
+        .target(name: "Podcast"),
+        .target(name: "Search"),
+      ]
+    ),
+    .featureTarget(
+      name: "Discover",
+      sourcePath: "Discover/Sources",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "Podcast"),
+      ]
+    ),
+    .featureUnitTestsTarget(
+      name: "DiscoverTests",
+      sourcePath: "Discover/Tests",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .core(target: "Repository"),
+        .target(name: "Podcast"),
+        .target(name: "Discover"),
+      ]
+    ),
+    .featureTarget(
+      name: "FeatureTestSupport",
+      sourcePath: "TestSupport",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .target(name: "Episode"),
+        .target(name: "Main"),
+        .target(name: "Podcast"),
       ]
     ),
   ],
@@ -66,49 +202,60 @@ let project = Project(
       name: "Feature",
       buildAction: .buildAction(
         targets: [
-          "Bookmarks",
-          "New",
+          "Discover",
+          "Episode",
+          "Main",
+          "Latest",
+          "Library",
           "Podcast",
+          "Player",
           "Search",
-          "TopPodcasts",
+          "FeatureTestSupport",
         ]
       ),
       testAction: .targets([
-        .testableTarget(target: "TopPodcastsTests"),
+        .testableTarget(target: "DiscoverTests"),
+        .testableTarget(target: "EpisodeTests"),
+        .testableTarget(target: "MainTests"),
+        .testableTarget(target: "LatestTests"),
+        .testableTarget(target: "LibraryTests"),
+        .testableTarget(target: "PodcastTests"),
+        .testableTarget(target: "PlayerTests"),
+        .testableTarget(target: "SearchTests"),
       ])
     ),
   ]
 )
 
 private extension Target {
-  static func featureFrameworkTarget(
+  static func featureTarget(
     name: String,
-    sourcesPath: String,
-    resourcesPath: String? = nil,
+    sourcePath: String,
+    resourcePath: String? = nil,
     dependencies: [TargetDependency]
   ) -> Target {
     iOSTarget(
       name: name,
-      product: .framework,
+      product: resourcePath == nil ? .staticLibrary : .staticFramework,
       bundleId: "Feature.\(name)",
-      sourcesPath: sourcesPath,
-      resourcesPath: resourcesPath,
+      sourcePath: sourcePath,
+      resourcePath: resourcePath,
       dependencies: dependencies
     )
   }
 
   static func featureUnitTestsTarget(
     name: String,
-    sourcesPath: String,
-    resourcesPath: String? = nil,
+    sourcePath: String,
+    resourcePath: String? = nil,
     dependencies: [TargetDependency]
   ) -> Target {
     iOSTarget(
       name: name,
       product: .unitTests,
       bundleId: "Feature.\(name)",
-      sourcesPath: sourcesPath,
-      resourcesPath: resourcesPath,
+      sourcePath: sourcePath,
+      resourcePath: resourcePath,
       dependencies: dependencies
     )
   }

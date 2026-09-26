@@ -1,18 +1,22 @@
-import Combine
+import RIBsLite
+
+enum _TemplateAction {
+  case countUp
+}
 
 @MainActor
 protocol _TemplatePresentable: AnyObject {}
 
 @MainActor
-protocol _TemplateInteractable: ObservableObject {
-  var state: _TemplateState { get }
-  func didTapCountUp()
+protocol _TemplateInteractable: AnyObject {
+  var store: StateStore<_TemplateState> { get }
+  func sendAction(_ action: _TemplateAction)
 }
 
 @MainActor
-final class _TemplateInteractor: _TemplateInteractable, ObservableObject {
+final class _TemplateInteractor: _TemplateInteractable {
   private let dependency: _TemplateDependency
-  @Published private(set) var state = _TemplateState()
+  let store = StateStore(_TemplateState())
   weak var presenter: _TemplatePresentable?
   weak var listener: _TemplateListener?
 
@@ -20,7 +24,10 @@ final class _TemplateInteractor: _TemplateInteractable, ObservableObject {
     self.dependency = dependency
   }
 
-  func didTapCountUp() {
-    state.count += 1
+  func sendAction(_ action: _TemplateAction) {
+    switch action {
+    case .countUp:
+      store.state.count += 1
+    }
   }
 }

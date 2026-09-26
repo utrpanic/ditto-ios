@@ -1,0 +1,187 @@
+import Discover
+import Entity
+import Latest
+import Library
+import Player
+import Repository
+import RIBsLite
+import Search
+import Testing
+import UIKit
+@testable import Main
+
+struct MainTests {
+  @MainActor
+  @Test
+  func stateChangesSynchronouslyUpdateSelectedTab() {
+    let interactor = MainInteractor()
+    let viewController = MainViewController(interactor: interactor)
+    viewController.loadViewIfNeeded()
+    viewController.attachDiscoverTab(UIViewController())
+    viewController.attachLatestTab(UIViewController())
+    viewController.attachLibraryTab(UIViewController())
+    viewController.attachSearchTab(UIViewController())
+
+    for (tab, index) in [(MainTab.latest, 1), (.library, 2), (.search, 3), (.discover, 0)] {
+      interactor.sendAction(.selectTab(tab))
+      #expect(viewController.selectedTab === viewController.tabs[index])
+    }
+
+    interactor.sendAction(.selectTab(.latest))
+    interactor.sendAction(.selectTab(.search))
+    #expect(viewController.selectedTab === viewController.tabs[3])
+  }
+
+  @MainActor
+  @Test
+  func stateSubscriptionDoesNotRetainMainViewControllerOrInteractor() {
+    var interactor: MainInteractor? = MainInteractor()
+    var viewController: MainViewController? = MainViewController(interactor: interactor!)
+    let store = interactor!.store
+    weak let weakViewController = viewController
+    weak let weakInteractor = interactor
+    viewController?.loadViewIfNeeded()
+    store.state.selectedTab = .latest
+
+    viewController = nil
+    interactor = nil
+    #expect(weakViewController == nil)
+    #expect(weakInteractor == nil)
+    store.state.selectedTab = .search
+  }
+
+  @MainActor
+  @Test func sendSelectTabAction_updatesSelectedTab() async throws {
+    let interactor = MainInteractor()
+
+    interactor.sendAction(.selectTab(.search))
+
+    #expect(interactor.store.state.selectedTab == .search)
+  }
+
+  @MainActor
+  @Test
+  func routeToMainAttachesChildrenOnlyOnce() {
+    let playerViewController = PlayerViewControllerStub()
+    let playerBuilder = PlayerBuildableSpy(viewController: playerViewController)
+    let dependency = MainDependencyStub(playerBuilder: playerBuilder)
+    let interactor = MainInteractor()
+    let mainViewController = MainViewController(interactor: interactor)
+    let router = MainRouter(
+      dependency: dependency,
+      interactor: interactor,
+      viewController: mainViewController
+    )
+    mainViewController.loadViewIfNeeded()
+
+    router.routeToMain(tab: .discover)
+    router.routeToMain(tab: .latest)
+
+    #expect(playerBuilder.buildCallCount == 1)
+    #expect(mainViewController.tabs.count == 4)
+    #expect(interactor.store.state.selectedTab == .latest)
+    #expect(playerViewController.parent === mainViewController)
+    #expect(mainViewController.bottomAccessory == nil)
+
+    playerViewController.setVisible(true)
+
+    #expect(mainViewController.bottomAccessory?.contentView === playerViewController.view)
+  }
+
+  @MainActor
+  @Test
+  func mainViewControllerPushesOnCurrentTabNavigationStack() {
+    let interactor = MainInteractor()
+    let viewController = MainViewController(interactor: interactor)
+    let discoverRoot = UIViewController()
+    let latestRoot = UIViewController()
+    let destination = UIViewController()
+    viewController.loadViewIfNeeded()
+    viewController.attachDiscoverTab(discoverRoot)
+    viewController.attachLatestTab(latestRoot)
+
+    viewController.selectTab(.latest)
+    viewController.push(destination)
+
+    let navigationController = viewController.selectedViewController as? UINavigationController
+    #expect(navigationController?.viewControllers.first === latestRoot)
+    #expect(navigationController?.topViewController === destination)
+  }
+}
+
+private struct MainDependencyStub: MainDependency {
+  let discoverBuilder: DiscoverBuildable = DiscoverBuildableStub()
+  let latestBuilder: LatestBuildable = LatestBuildableStub()
+  let libraryBuilder: LibraryBuildable = LibraryBuildableStub()
+  let playerBuilder: PlayerBuildable
+  let searchBuilder: SearchBuildable = SearchBuildableStub()
+
+  @MainActor
+  init(playerBuilder: PlayerBuildable? = nil) {
+    self.playerBuilder = playerBuilder ?? PlayerBuildableStub()
+  }
+}
+
+private struct DiscoverBuildableStub: DiscoverBuildable {
+  @MainActor
+  func build(listener: DiscoverListener?) -> ViewControllable {
+    UIViewController()
+  }
+}
+
+private struct LatestBuildableStub: LatestBuildable {
+  @MainActor
+  func build(listener: LatestListener?) -> ViewControllable {
+    UIViewController()
+  }
+}
+
+private struct LibraryBuildableStub: LibraryBuildable {
+  @MainActor
+  func build(listener: LibraryListener?) -> ViewControllable {
+    UIViewController()
+  }
+}
+
+private struct SearchBuildableStub: SearchBuildable {
+  @MainActor
+  func build(listener: SearchListener?) -> ViewControllable {
+    UIViewController()
+  }
+}
+
+private struct PlayerBuildableStub: PlayerBuildable {
+  @MainActor
+  func build(listener: PlayerListener?) -> PlayerViewControllable {
+    PlayerViewControllerStub()
+  }
+}
+
+@MainActor
+private final class PlayerBuildableSpy: PlayerBuildable {
+  private let viewController: PlayerViewControllable
+  private(set) var buildCallCount = 0
+
+  init(viewController: PlayerViewControllable) {
+    self.viewController = viewController
+  }
+
+  func build(listener: PlayerListener?) -> PlayerViewControllable {
+    buildCallCount += 1
+    return viewController
+  }
+}
+
+@MainActor
+private final class PlayerViewControllerStub: UIViewController, PlayerViewControllable {
+  private var visibilityObserver: ((Bool) -> Void)?
+
+  func observeVisibility(_ observer: @escaping (Bool) -> Void) {
+    visibilityObserver = observer
+    observer(false)
+  }
+
+  func setVisible(_ isVisible: Bool) {
+    visibilityObserver?(isVisible)
+  }
+}

@@ -3,6 +3,7 @@ import UIKit
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   var window: UIWindow?
   private var appComponent: AppComponent?
+  private var deepLinkRouter: DeepLinkRouter?
 
   func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
     // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
@@ -12,8 +13,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     self.window = UIWindow(windowScene: windowScene)
     let appComponent = AppComponent()
     self.appComponent = appComponent
-    self.window?.rootViewController = appComponent.makeRootViewController()
+    let (viewController, mainRouter) = appComponent.makeRoot()
+    self.window?.rootViewController = viewController.ui
+    self.deepLinkRouter = DeepLinkRouter(
+      dependency: appComponent,
+      mainRouter: mainRouter
+    )
     self.window?.makeKeyAndVisible()
+  }
+
+  func handleDeepLink(_ deepLink: DeepLink) {
+    deepLinkRouter?.route(to: deepLink)
   }
 
   func sceneDidDisconnect(_ scene: UIScene) {

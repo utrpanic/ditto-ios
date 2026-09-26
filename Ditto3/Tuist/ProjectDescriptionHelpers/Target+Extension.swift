@@ -5,8 +5,8 @@ public extension Target {
     name: String,
     product: Product,
     bundleId: String,
-    sourcesPath: String,
-    resourcesPath: String?,
+    sourcePath: String,
+    resourcePath: String?,
     dependencies: [TargetDependency]
   ) -> Target {
     .target(
@@ -14,8 +14,8 @@ public extension Target {
       destinations: .iOS,
       product: product,
       bundleId: bundleId,
-      sources: ["\(sourcesPath)/**"],
-      resources: resourcesPath.map { ["\($0)/**"] } ?? [],
+      sources: ["\(sourcePath)/**"],
+      resources: resourcePath.map { ["\($0)/**"] } ?? [],
       dependencies: dependencies
     )
   }    

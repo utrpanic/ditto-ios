@@ -25,15 +25,28 @@ let project = Project(
             ],
           ],
           "UILaunchStoryboardName": .string("LaunchScreen"),
+          "UIBackgroundModes": .array([
+            .string("audio"),
+          ]),
         ]
       ),
       sources: ["Sources/**"],
       resources: ["Resources/**"],
       dependencies: [
         .platform(target: "Platform"),
+        .core(target: "Entity"),
+        .core(target: "Playback"),
+        .core(target: "PlaybackImp"),
         .core(target: "Repository"),
         .core(target: "RepositoryImp"),
-        .feature(target: "TopPodcasts"),
+        .feature(target: "Discover"),
+        .feature(target: "Episode"),
+        .feature(target: "Main"),
+        .feature(target: "Latest"),
+        .feature(target: "Library"),
+        .feature(target: "Podcast"),
+        .feature(target: "Player"),
+        .feature(target: "Search"),
       ]
     ),
     .target(
@@ -45,6 +58,12 @@ let project = Project(
       sources: ["Tests/**"],
       dependencies: [
         .target(name: "App"),
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .feature(target: "Episode"),
+        .feature(target: "FeatureTestSupport"),
+        .feature(target: "Main"),
+        .feature(target: "Podcast"),
       ]
     ),
   ],
