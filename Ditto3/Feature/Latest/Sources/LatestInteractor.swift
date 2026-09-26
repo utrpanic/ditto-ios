@@ -34,7 +34,6 @@ final class LatestInteractor: Interactor, LatestInteractable {
   deinit {
     followingObservationTask?.cancel()
     foregroundObservationTask?.cancel()
-    reloadTask?.cancel()
   }
 
   override func didBecomeActive() {

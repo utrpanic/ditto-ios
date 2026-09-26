@@ -84,6 +84,7 @@ let project = Project(
         .core(target: "Entity"),
         .core(target: "Playback"),
         .core(target: "Repository"),
+        .target(name: "Episode"),
       ]
     ),
     .featureUnitTestsTarget(
@@ -94,6 +95,7 @@ let project = Project(
         .core(target: "Entity"),
         .core(target: "Playback"),
         .core(target: "Repository"),
+        .target(name: "Episode"),
         .target(name: "Player"),
       ]
     ),

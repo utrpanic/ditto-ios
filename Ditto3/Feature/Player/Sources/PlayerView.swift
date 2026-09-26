@@ -359,6 +359,12 @@ private struct ExpandedPlayerView: View {
       .buttonStyle(.plain)
 
       Menu {
+        Button("View Episode", systemImage: "info.circle") {
+          sendAction(.viewQueueEpisode(item.episode.id))
+        }
+
+        Divider()
+
         Button("Move Up", systemImage: "arrow.up") {
           sendAction(.moveQueueItem(item.episode.id, to: index - 1))
         }

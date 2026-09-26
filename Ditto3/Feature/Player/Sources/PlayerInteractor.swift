@@ -12,6 +12,7 @@ enum PlayerAction {
   case presentExpanded
   case dismissExpanded
   case playQueueItem(EpisodeID)
+  case viewQueueEpisode(EpisodeID)
   case moveQueueItem(EpisodeID, to: Int)
   case removeQueueItem(EpisodeID)
   case clearQueue
@@ -53,9 +54,6 @@ final class PlayerInteractor: Interactor, PlayerInteractable {
     playbackObservationTask?.cancel()
     completionObservationTask?.cancel()
     queueObservationTask?.cancel()
-    queueMutationTask?.cancel()
-    seekTask?.cancel()
-    playbackControlTask?.cancel()
   }
 
   override func didBecomeActive() {
@@ -98,6 +96,10 @@ final class PlayerInteractor: Interactor, PlayerInteractable {
       store.state.isExpanded = false
     case .playQueueItem(let episodeID):
       playQueueItem(episodeID)
+    case .viewQueueEpisode(let episodeID):
+      guard let episode = store.state.queue.first(where: { $0.episode.id == episodeID })?.episode else { return }
+      store.state.isExpanded = false
+      router?.routeToEpisode(episode)
     case .moveQueueItem(let episodeID, let index):
       mutateQueue { repository in
         try await repository.move(episodeID: episodeID, to: index)

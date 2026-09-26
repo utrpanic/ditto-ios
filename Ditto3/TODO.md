@@ -52,9 +52,9 @@
     - 현재 Episode snapshot과 position을 저장한다.
     - 앱 재실행 시 paused MiniPlayer를 복원한다.
     - 재생 시 저장된 위치로 seek한다.
-14. Architecture 시나리오를 검증한다.
+14. Architecture 시나리오를 검증한다. ✅
     - Podcast feature의 Discover, Search, Library 진입을 검증한다.
     - Episode feature의 Podcast, Latest, Search, Queue 진입을 검증한다.
     - Follow 변경이 Library와 Latest에 반영되는지 검증한다.
     - Play Next와 Add to Queue가 persistent Player와 Queue에 반영되는지 검증한다.
-    - Interactor activation/deactivation과 stream observation 수명을 검증한다.
+    - ViewController/Interactor 해제와 stream observation 수명을 검증한다.

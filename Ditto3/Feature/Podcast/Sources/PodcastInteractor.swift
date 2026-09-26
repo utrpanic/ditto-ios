@@ -36,9 +36,7 @@ final class PodcastInteractor: Interactor, PodcastInteractable {
   }
 
   deinit {
-    episodeLoadTask?.cancel()
     followingObservationTask?.cancel()
-    followingMutationTask?.cancel()
   }
 
   override func didBecomeActive() {

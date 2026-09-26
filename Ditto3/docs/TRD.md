@@ -113,6 +113,14 @@ Podcast와 Episode Builder는 진입한 parent feature와 무관하게 동일한
 - Podcast entry points: Discover, Search, Library
 - Episode entry points: Podcast, Latest, Search, Queue
 
+### 4.4 Ownership and Lifecycle
+
+- UIKit VC tree가 Feature ViewController의 수명을 소유한다.
+- ViewController는 Interactor를 강하게 소유하고, Interactor는 Router를 강하게 소유한다.
+- Router는 ViewController를 약하게 참조해 `ViewController -> Interactor -> Router -> ViewController` 순환 참조를 만들지 않는다.
+- ViewController가 해제되면 Interactor도 함께 해제되고, Interactor는 deinit에서 장기 stream observation만 취소한다.
+- 일회성 조회, 저장, 재생 작업은 ViewController 수명과 결합하지 않는다. UI state 반영은 weak reference로 차단하되 시작된 작업 자체는 완료한다.
+
 ## 5. Feature Responsibilities
 
 ### Main

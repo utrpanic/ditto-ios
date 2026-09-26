@@ -61,6 +61,23 @@ struct LibraryTests {
 
   @MainActor
   @Test
+  func releasingInteractorEndsFollowingObservation() async {
+    let repository = FollowingRepositorySpy()
+    var interactor: LibraryInteractor? = LibraryInteractor(
+      dependency: Dependency(followingRepository: repository)
+    )
+    weak let weakInteractor = interactor
+
+    interactor?.activate()
+    await waitUntil { await repository.observationCounts().started == 1 }
+    interactor = nil
+
+    await waitUntil { await repository.observationCounts().terminated == 1 }
+    #expect(weakInteractor == nil)
+  }
+
+  @MainActor
+  @Test
   func selectingPodcastRoutesToPodcast() {
     let podcast = makePodcast()
     let interactor = LibraryInteractor(dependency: Dependency())
@@ -91,9 +108,9 @@ struct LibraryTests {
 }
 
 @MainActor
-private func waitUntil(_ condition: () -> Bool) async {
+private func waitUntil(_ condition: () async -> Bool) async {
   for _ in 0..<1_000 {
-    guard !condition() else { return }
+    guard !(await condition()) else { return }
     await Task.yield()
   }
 }
@@ -130,6 +147,8 @@ private struct Dependency: LibraryDependency {
 private actor FollowingRepositorySpy: FollowingRepository {
   private var followedPodcasts: [FollowedPodcast]
   private var changeContinuations: [UUID: AsyncStream<Void>.Continuation] = [:]
+  private var startedObservationCount = 0
+  private var terminatedObservationCount = 0
 
   init(followedPodcasts: [FollowedPodcast] = []) {
     self.followedPodcasts = followedPodcasts
@@ -157,14 +176,29 @@ private actor FollowingRepositorySpy: FollowingRepository {
   func changes() -> AsyncStream<Void> {
     let id = UUID()
     let (stream, continuation) = AsyncStream<Void>.makeStream()
+    startedObservationCount += 1
+    continuation.onTermination = { [weak self] _ in
+      Task {
+        await self?.terminateObservation(id: id)
+      }
+    }
     changeContinuations[id] = continuation
     return stream
+  }
+
+  func observationCounts() -> (started: Int, terminated: Int) {
+    (startedObservationCount, terminatedObservationCount)
   }
 
   private func notifyChanges() {
     for continuation in changeContinuations.values {
       continuation.yield(())
     }
+  }
+
+  private func terminateObservation(id: UUID) {
+    changeContinuations[id] = nil
+    terminatedObservationCount += 1
   }
 }
 

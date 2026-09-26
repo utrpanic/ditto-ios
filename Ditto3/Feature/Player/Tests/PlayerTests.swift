@@ -1,9 +1,11 @@
 import Entity
+import Episode
 import Foundation
 import Playback
 import Repository
 import RIBsLite
 import Testing
+import UIKit
 @testable import Player
 
 struct PlayerTests {
@@ -142,6 +144,89 @@ struct PlayerTests {
 
     await waitUntil { playbackController.playedEpisode == item.episode }
     #expect(await queueRepository.itemIDs().isEmpty)
+  }
+
+  @MainActor
+  @Test
+  func viewingQueueEpisodeRoutesWithoutChangingQueue() async {
+    let item = makeQueueItem(id: "next")
+    let queueRepository = PlaybackQueueRepositorySpy(items: [item])
+    let interactor = PlayerInteractor(dependency: Dependency(
+      playbackQueueRepository: queueRepository
+    ))
+    let router = RouterSpy()
+    interactor.router = router
+    interactor.activate()
+    await waitUntil { interactor.store.state.queue == [item] }
+    interactor.store.state.isExpanded = true
+
+    interactor.sendAction(.viewQueueEpisode(item.episode.id))
+
+    #expect(router.routedEpisode == item.episode)
+    #expect(!interactor.store.state.isExpanded)
+    #expect(await queueRepository.itemIDs() == [item.episode.id])
+  }
+
+  @MainActor
+  @Test
+  func routerBuildsEpisodeAndPushesItOnCurrentTab() {
+    let episode = makeQueueItem(id: "next").episode
+    let destination = UIViewController()
+    let episodeBuilder = EpisodeBuilderSpy(destination: destination)
+    let dependency = Dependency(episodeBuilder: episodeBuilder)
+    let playerViewController = PlayerViewControllerStub()
+    let tabBarController = UITabBarController()
+    let navigationController = UINavigationController(rootViewController: UIViewController())
+    tabBarController.viewControllers = [navigationController]
+    tabBarController.addChild(playerViewController)
+    let router = PlayerRouter(dependency: dependency, viewController: playerViewController)
+
+    router.routeToEpisode(episode)
+
+    #expect(episodeBuilder.builtEpisode == episode)
+    #expect(navigationController.topViewController === destination)
+  }
+
+  @MainActor
+  @Test
+  func routerDoesNotRetainViewController() {
+    var viewController: UIViewController? = UIViewController()
+    weak let weakViewController = viewController
+    let router = Router<ViewControllable>(viewController: viewController!)
+
+    viewController = nil
+
+    #expect(weakViewController == nil)
+    _ = router
+  }
+
+  @MainActor
+  @Test
+  func releasingInteractorEndsPlaybackAndQueueObservations() async {
+    let playbackController = PlaybackControllerSpy()
+    let queueRepository = PlaybackQueueRepositorySpy()
+    var interactor: PlayerInteractor? = PlayerInteractor(dependency: Dependency(
+      playbackController: playbackController,
+      playbackQueueRepository: queueRepository
+    ))
+    weak let weakInteractor = interactor
+    interactor?.activate()
+    await waitUntil {
+      let queueCounts = await queueRepository.observationCounts()
+      return playbackController.streamCallCount == 1
+        && playbackController.completionStreamCallCount == 1
+        && queueCounts.started == 1
+    }
+
+    interactor = nil
+
+    await waitUntil {
+      let queueCounts = await queueRepository.observationCounts()
+      return playbackController.stateStreamTerminationCount == 1
+        && playbackController.completionStreamTerminationCount == 1
+        && queueCounts.terminated == 1
+    }
+    #expect(weakInteractor == nil)
   }
 
   @MainActor
@@ -312,15 +397,18 @@ private func waitUntil(_ condition: () async -> Bool) async {
 
 @MainActor
 private struct Dependency: PlayerDependency {
+  let episodeBuilder: EpisodeBuildable
   let playbackController: PlaybackControlling
   let playbackQueueRepository: PlaybackQueueRepository
   let playbackSessionRepository: PlaybackSessionRepository
 
   init(
+    episodeBuilder: EpisodeBuildable? = nil,
     playbackController: PlaybackControlling? = nil,
     playbackQueueRepository: PlaybackQueueRepository? = nil,
     playbackSessionRepository: PlaybackSessionRepository? = nil
   ) {
+    self.episodeBuilder = episodeBuilder ?? EpisodeBuilderStub()
     self.playbackController = playbackController ?? PlaybackControllerSpy()
     self.playbackQueueRepository = playbackQueueRepository ?? PlaybackQueueRepositorySpy()
     self.playbackSessionRepository = playbackSessionRepository ?? PlaybackSessionRepositorySpy()
@@ -340,6 +428,8 @@ private final class PlaybackControllerSpy: PlaybackControlling {
   private(set) var seekPositions: [TimeInterval] = []
   private(set) var streamCallCount = 0
   private(set) var completionStreamCallCount = 0
+  private(set) var stateStreamTerminationCount = 0
+  private(set) var completionStreamTerminationCount = 0
   private(set) var playedEpisode: Episode?
   private(set) var restoredSession: PlaybackSession?
 
@@ -381,6 +471,11 @@ private final class PlaybackControllerSpy: PlaybackControlling {
   func stateChanges() -> AsyncStream<PlaybackState> {
     streamCallCount += 1
     let (stream, continuation) = AsyncStream<PlaybackState>.makeStream()
+    continuation.onTermination = { [weak self] _ in
+      Task { @MainActor in
+        self?.stateStreamTerminationCount += 1
+      }
+    }
     continuation.yield(currentState)
     continuations.append(continuation)
     return stream
@@ -389,6 +484,11 @@ private final class PlaybackControllerSpy: PlaybackControlling {
   func completionEvents() -> AsyncStream<PlaybackSession> {
     completionStreamCallCount += 1
     return AsyncStream { continuation in
+      continuation.onTermination = { [weak self] _ in
+        Task { @MainActor in
+          self?.completionStreamTerminationCount += 1
+        }
+      }
       completionContinuations.append(continuation)
     }
   }
@@ -452,6 +552,8 @@ private actor PlaybackQueueRepositorySpy: PlaybackQueueRepository {
   private var dequeueCallCount = 0
   private let failsMutations: Bool
   private var continuations: [AsyncStream<Void>.Continuation] = []
+  private var startedObservationCount = 0
+  private var terminatedObservationCount = 0
 
   init(items: [QueueItem] = [], failsMutations: Bool = false) {
     self.items = items
@@ -504,9 +606,19 @@ private actor PlaybackQueueRepositorySpy: PlaybackQueueRepository {
   }
 
   func changes() -> AsyncStream<Void> {
-    AsyncStream { continuation in
+    startedObservationCount += 1
+    return AsyncStream<Void> { continuation in
+      continuation.onTermination = { [weak self] _ in
+        Task {
+          await self?.terminateObservation()
+        }
+      }
       continuations.append(continuation)
     }
+  }
+
+  func observationCounts() -> (started: Int, terminated: Int) {
+    (startedObservationCount, terminatedObservationCount)
   }
 
   func stubItems(_ items: [QueueItem]) {
@@ -527,7 +639,47 @@ private actor PlaybackQueueRepositorySpy: PlaybackQueueRepository {
       continuation.yield(())
     }
   }
+
+  private func terminateObservation() {
+    terminatedObservationCount += 1
+  }
 }
 
 @MainActor
 private final class Listener: PlayerListener {}
+
+@MainActor
+private final class RouterSpy: PlayerRouting {
+  private(set) var routedEpisode: Episode?
+
+  func routeToEpisode(_ episode: Episode) {
+    routedEpisode = episode
+  }
+}
+
+@MainActor
+private final class EpisodeBuilderStub: EpisodeBuildable {
+  func build(episode: Episode, listener: EpisodeListener?) -> ViewControllable {
+    UIViewController()
+  }
+}
+
+@MainActor
+private final class EpisodeBuilderSpy: EpisodeBuildable {
+  private let destination: ViewControllable
+  private(set) var builtEpisode: Episode?
+
+  init(destination: ViewControllable) {
+    self.destination = destination
+  }
+
+  func build(episode: Episode, listener: EpisodeListener?) -> ViewControllable {
+    builtEpisode = episode
+    return destination
+  }
+}
+
+@MainActor
+private final class PlayerViewControllerStub: UIViewController, PlayerViewControllable {
+  func observeVisibility(_ observer: @escaping (Bool) -> Void) {}
+}
