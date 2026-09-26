@@ -13,7 +13,7 @@ import UIKit
 struct MainTests {
   @MainActor
   @Test func sendSelectTabAction_updatesSelectedTab() async throws {
-    let interactor = MainInteractor(dependency: MainDependencyStub())
+    let interactor = MainInteractor()
 
     interactor.sendAction(.selectTab(.search))
 
@@ -22,25 +22,51 @@ struct MainTests {
 
   @MainActor
   @Test
-  func routerAttachesOnePersistentPlayerChild() {
+  func routeToMainAttachesChildrenOnlyOnce() {
     let playerViewController = PlayerViewControllerStub()
     let playerBuilder = PlayerBuildableSpy(viewController: playerViewController)
     let dependency = MainDependencyStub(playerBuilder: playerBuilder)
-    let interactor = MainInteractor(dependency: dependency)
+    let interactor = MainInteractor()
     let mainViewController = MainViewController(interactor: interactor)
-    let router = MainRouter(dependency: dependency, viewController: mainViewController)
+    let router = MainRouter(
+      dependency: dependency,
+      interactor: interactor,
+      viewController: mainViewController
+    )
     mainViewController.loadViewIfNeeded()
 
-    router.attachPlayer(listener: nil)
-    router.attachPlayer(listener: nil)
+    router.routeToMain(tab: .discover)
+    router.routeToMain(tab: .latest)
 
     #expect(playerBuilder.buildCallCount == 1)
+    #expect(mainViewController.tabs.count == 4)
+    #expect(interactor.store.state.selectedTab == .latest)
     #expect(playerViewController.parent === mainViewController)
     #expect(mainViewController.bottomAccessory == nil)
 
     playerViewController.setVisible(true)
 
     #expect(mainViewController.bottomAccessory?.contentView === playerViewController.view)
+  }
+
+  @MainActor
+  @Test
+  func mainViewControllerPushesOnCurrentTabNavigationStack() {
+    let interactor = MainInteractor()
+    let viewController = MainViewController(interactor: interactor)
+    let discoverRoot = UIViewController()
+    let latestRoot = UIViewController()
+    let destination = UIViewController()
+    viewController.loadViewIfNeeded()
+    viewController.attachDiscoverTab(discoverRoot)
+    viewController.attachLatestTab(latestRoot)
+
+    viewController.selectTab(.latest)
+    viewController.push(destination)
+
+    let navigationController = viewController.selectedViewController as? UINavigationController
+    #expect(navigationController?.viewControllers.first === latestRoot)
+    #expect(navigationController?.topViewController === destination)
   }
 }
 

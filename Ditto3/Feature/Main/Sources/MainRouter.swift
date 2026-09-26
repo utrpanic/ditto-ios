@@ -13,19 +13,13 @@ protocol MainViewControllable: ViewControllable {
   func attachLibraryTab(_ viewController: ViewControllable)
   func attachSearchTab(_ viewController: ViewControllable)
   func attachPlayer(_ viewController: PlayerViewControllable)
-}
-
-@MainActor
-protocol MainRouting: Routing {
-  func attachDiscover(listener: DiscoverListener?)
-  func attachLatest(listener: LatestListener?)
-  func attachLibrary(listener: LibraryListener?)
-  func attachSearch(listener: SearchListener?)
-  func attachPlayer(listener: PlayerListener?)
+  func selectTab(_ tab: MainTabDestination)
+  func push(_ viewController: ViewControllable)
 }
 
 @MainActor
 final class MainRouter: Router<MainViewControllable>, MainRouting {
+  private weak var interactor: MainInteractable?
   private let discoverBuilder: DiscoverBuildable
   private var discoverViewController: ViewControllable?
   private let latestBuilder: LatestBuildable
@@ -37,7 +31,12 @@ final class MainRouter: Router<MainViewControllable>, MainRouting {
   private let playerBuilder: PlayerBuildable
   private var playerViewController: PlayerViewControllable?
 
-  init(dependency: MainDependency, viewController: MainViewControllable) {
+  init(
+    dependency: MainDependency,
+    interactor: MainInteractable,
+    viewController: MainViewControllable
+  ) {
+    self.interactor = interactor
     self.discoverBuilder = dependency.discoverBuilder
     self.latestBuilder = dependency.latestBuilder
     self.libraryBuilder = dependency.libraryBuilder
@@ -46,37 +45,50 @@ final class MainRouter: Router<MainViewControllable>, MainRouting {
     super.init(viewController: viewController)
   }
 
-  func attachDiscover(listener: DiscoverListener?) {
+  func routeToMain(tab: MainTabDestination) {
+    attachDiscoverIfNeeded()
+    attachLatestIfNeeded()
+    attachLibraryIfNeeded()
+    attachSearchIfNeeded()
+    attachPlayerIfNeeded()
+    viewController.selectTab(tab)
+  }
+
+  func push(_ viewController: ViewControllable) {
+    self.viewController.push(viewController)
+  }
+
+  private func attachDiscoverIfNeeded() {
     guard discoverViewController == nil else { return }
-    let viewController = discoverBuilder.build(listener: listener)
+    let viewController = discoverBuilder.build(listener: interactor)
     discoverViewController = viewController
     self.viewController.attachDiscoverTab(viewController)
   }
 
-  func attachLatest(listener: LatestListener?) {
+  private func attachLatestIfNeeded() {
     guard latestViewController == nil else { return }
-    let viewController = latestBuilder.build(listener: listener)
+    let viewController = latestBuilder.build(listener: interactor)
     latestViewController = viewController
     self.viewController.attachLatestTab(viewController)
   }
 
-  func attachLibrary(listener: LibraryListener?) {
+  private func attachLibraryIfNeeded() {
     guard libraryViewController == nil else { return }
-    let viewController = libraryBuilder.build(listener: listener)
+    let viewController = libraryBuilder.build(listener: interactor)
     libraryViewController = viewController
     self.viewController.attachLibraryTab(viewController)
   }
 
-  func attachSearch(listener: SearchListener?) {
+  private func attachSearchIfNeeded() {
     guard searchViewController == nil else { return }
-    let viewController = searchBuilder.build(listener: listener)
+    let viewController = searchBuilder.build(listener: interactor)
     searchViewController = viewController
     self.viewController.attachSearchTab(viewController)
   }
 
-  func attachPlayer(listener: PlayerListener?) {
+  private func attachPlayerIfNeeded() {
     guard playerViewController == nil else { return }
-    let viewController = playerBuilder.build(listener: listener)
+    let viewController = playerBuilder.build(listener: interactor)
     playerViewController = viewController
     self.viewController.attachPlayer(viewController)
   }

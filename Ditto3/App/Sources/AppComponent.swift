@@ -12,10 +12,12 @@ import Player
 import Podcast
 import Repository
 import RepositoryImp
+import RIBsLite
 import Search
 import UIKit
 
 typealias Dependencies = MainDependency
+& DeepLinkDependency
 & DiscoverDependency
 & EpisodeDependency
 & LatestDependency
@@ -56,7 +58,7 @@ final class AppComponent: @MainActor Dependencies {
   }
 
   @MainActor
-  func makeRootViewController() -> UIViewController {
-    mainBuilder.build(listener: nil).ui
+  func makeRoot() -> (ViewControllable, MainRouting) {
+    mainBuilder.build(listener: nil)
   }
 }

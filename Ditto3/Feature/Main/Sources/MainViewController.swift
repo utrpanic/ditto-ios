@@ -3,12 +3,6 @@ import Player
 import RIBsLite
 import UIKit
 
-@MainActor
-protocol MainInteractable: AnyObject {
-  var store: StateStore<MainState> { get }
-  func sendAction(_ action: MainAction)
-}
-
 final class MainViewController: UITabBarController, MainViewControllable, UITabBarControllerDelegate {
   private enum TabIdentifier {
     static let discover = "main.discover"
@@ -23,7 +17,6 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
   private var latestTab: UITab?
   private var libraryTab: UITab?
   private var searchTab: UISearchTab?
-  private var playerViewController: PlayerViewControllable?
   private var playerAccessory: UITabAccessory?
   
   private var cancellables = Set<AnyCancellable>()
@@ -56,10 +49,10 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
   }
 
   private func render(state: MainState) {
-    selectTab(state.selectedTab)
+    renderSelectedTab(state.selectedTab)
   }
 
-  private func selectTab(_ tab: MainTab) {
+  private func renderSelectedTab(_ tab: MainTab) {
     let selectedTab: UITab? = switch tab {
     case .discover:
       discoverTab
@@ -120,9 +113,6 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
   }
 
   func attachPlayer(_ viewController: PlayerViewControllable) {
-    guard playerViewController == nil else { return }
-    playerViewController = viewController
-
     let playerUI = viewController.ui
     addChild(playerUI)
     let accessory = UITabAccessory(contentView: playerUI.view)
@@ -134,6 +124,15 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
       guard isVisible != (bottomAccessory != nil) else { return }
       setBottomAccessory(isVisible ? accessory : nil, animated: view.window != nil)
     }
+  }
+
+  func selectTab(_ tab: MainTabDestination) {
+    interactor.sendAction(.selectTab(tab.mainTab))
+  }
+
+  func push(_ viewController: ViewControllable) {
+    guard let navigationController = selectedViewController as? UINavigationController else { return }
+    navigationController.pushViewController(viewController.ui, animated: true)
   }
 
   private func appendTab(_ tab: UITab) {
@@ -159,5 +158,16 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
     }
     guard let tab else { return }
     interactor.sendAction(.selectTab(tab))
+  }
+}
+
+private extension MainTabDestination {
+  var mainTab: MainTab {
+    switch self {
+    case .discover: .discover
+    case .latest: .latest
+    case .library: .library
+    case .search: .search
+    }
   }
 }

@@ -14,13 +14,17 @@ public protocol MainDependency {
 }
 
 public final class MainBuilder: Builder<MainDependency>, MainBuildable {
-  public func build(listener: MainListener?) -> ViewControllable {
-    let interactor = MainInteractor(dependency: dependency)
+  public func build(listener: MainListener?) -> (ViewControllable, MainRouting) {
+    let interactor = MainInteractor()
     let viewController = MainViewController(interactor: interactor)
-    let router = MainRouter(dependency: dependency, viewController: viewController)
+    let router = MainRouter(
+      dependency: dependency,
+      interactor: interactor,
+      viewController: viewController
+    )
     interactor.router = router
     interactor.listener = listener
     interactor.activate()
-    return viewController
+    return (viewController, router)
   }
 }

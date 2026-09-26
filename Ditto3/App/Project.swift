@@ -34,6 +34,7 @@ let project = Project(
       resources: ["Resources/**"],
       dependencies: [
         .platform(target: "Platform"),
+        .core(target: "Entity"),
         .core(target: "Playback"),
         .core(target: "PlaybackImp"),
         .core(target: "Repository"),
@@ -57,6 +58,11 @@ let project = Project(
       sources: ["Tests/**"],
       dependencies: [
         .target(name: "App"),
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .feature(target: "Episode"),
+        .feature(target: "Main"),
+        .feature(target: "Podcast"),
       ]
     ),
   ],

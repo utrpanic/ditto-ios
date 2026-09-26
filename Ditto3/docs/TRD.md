@@ -441,7 +441,28 @@ Following, Queue, PlaybackSession은 version을 포함한 JSON snapshot으로 lo
 
 Each step should remain a focused commit and preserve a buildable project.
 
-## 18. Explicit Non-goals
+## 18. Deep Link Navigation
+
+Deep link navigation is split into route resolution and navigation execution. The current implementation covers navigation execution for an already resolved domain route; external URL parsing and entity resolution remain separate concerns.
+
+```text
+SceneDelegate.handleDeepLink(DeepLink)
+-> App.DeepLinkRouter
+   ├─ main(tab): route to Main and select the requested tab
+   ├─ podcast(Podcast): build and push Podcast on the selected tab
+   └─ episode(Episode): build and push Episode on the selected tab
+```
+
+- Main owns one `UINavigationController` per tab rather than a shared navigation stack.
+- A Main destination changes only the selected tab and preserves each tab's stack.
+- Podcast and Episode destinations use the currently selected tab's navigation controller.
+- `DeepLinkRouter` belongs to the App composition layer and owns Podcast/Episode feature construction.
+- Main exposes only `MainRouting`, implemented by `MainRouter`. `routeToMain(tab:)` idempotently attaches the tab children and Player before selecting a tab; it can also push a view controller on the selected tab.
+- `DeepLinkRouter` receives Podcast and Episode builders through `DeepLinkDependency`, which `AppComponent` satisfies as the composition root.
+- Main and `MainInteractor` remain unaware of deep links and do not depend on Podcast/Episode solely for deep-link routing.
+- URL schemes, URL parameters, and the resolver that produces `Podcast` or `Episode` are not defined at this stage.
+
+## 19. Explicit Non-goals
 
 - viewless Riblet
 - Episode Keep or Saved Episodes

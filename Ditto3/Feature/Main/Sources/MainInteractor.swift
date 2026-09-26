@@ -10,24 +10,24 @@ enum MainAction {
 }
 
 @MainActor
-final class MainInteractor: Interactor, MainInteractable, DiscoverListener, LatestListener, LibraryListener, PlayerListener, SearchListener {
-  private let dependency: MainDependency
+protocol MainInteractable: AnyObject, DiscoverListener, LatestListener, LibraryListener, PlayerListener, SearchListener {
+  var store: StateStore<MainState> { get }
+  func sendAction(_ action: MainAction)
+}
+
+@MainActor
+final class MainInteractor: Interactor, MainInteractable {
   let store: StateStore<MainState>
   var router: MainRouting?
   weak var listener: MainListener?
 
-  init(dependency: MainDependency) {
-    self.dependency = dependency
+  override init() {
     self.store = StateStore(MainState())
     super.init()
   }
 
   override func didBecomeActive() {
-    router?.attachDiscover(listener: self)
-    router?.attachLatest(listener: self)
-    router?.attachLibrary(listener: self)
-    router?.attachSearch(listener: self)
-    router?.attachPlayer(listener: self)
+    router?.routeToMain(tab: .discover)
   }
 
   func sendAction(_ action: MainAction) {
