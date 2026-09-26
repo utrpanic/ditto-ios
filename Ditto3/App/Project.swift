@@ -61,6 +61,7 @@ let project = Project(
         .architecture(target: "RIBsLite"),
         .core(target: "Entity"),
         .feature(target: "Episode"),
+        .feature(target: "FeatureTestSupport"),
         .feature(target: "Main"),
         .feature(target: "Podcast"),
       ]

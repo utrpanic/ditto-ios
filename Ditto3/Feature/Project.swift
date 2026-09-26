@@ -183,6 +183,17 @@ let project = Project(
         .target(name: "Discover"),
       ]
     ),
+    .featureTarget(
+      name: "FeatureTestSupport",
+      sourcePath: "TestSupport",
+      dependencies: [
+        .architecture(target: "RIBsLite"),
+        .core(target: "Entity"),
+        .target(name: "Episode"),
+        .target(name: "Main"),
+        .target(name: "Podcast"),
+      ]
+    ),
   ],
   schemes: [
     .scheme(
@@ -197,6 +208,7 @@ let project = Project(
           "Podcast",
           "Player",
           "Search",
+          "FeatureTestSupport",
         ]
       ),
       testAction: .targets([
