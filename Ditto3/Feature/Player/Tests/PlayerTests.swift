@@ -46,6 +46,65 @@ struct PlayerTests {
 
   @MainActor
   @Test
+  func visibilityUpdatesSynchronouslyWithoutAParentViewController() {
+    let interactor = PlayerInteractor(dependency: Dependency())
+    let viewController = PlayerViewController(interactor: interactor)
+    var visibility: [Bool] = []
+    viewController.observeVisibility { visibility.append($0) }
+    #expect(visibility == [false])
+
+    interactor.store.state.playback = .playing(makeSession())
+    #expect(visibility == [false, true])
+
+    interactor.store.state.playback = .idle
+    #expect(visibility == [false, true, false])
+
+    interactor.store.state.playback = .paused(makeSession())
+    #expect(visibility == [false, true, false, true])
+    #expect(viewController.parent == nil)
+  }
+
+  @MainActor
+  @Test
+  func visibilityCallbackCanSendActionUsingCommittedPlaybackState() {
+    let interactor = PlayerInteractor(dependency: Dependency())
+    let viewController = PlayerViewController(interactor: interactor)
+    let playback = PlaybackState.playing(makeSession())
+    var didSendAction = false
+    viewController.observeVisibility { isVisible in
+      guard isVisible, !didSendAction else { return }
+      #expect(interactor.store.state.playback == playback)
+      didSendAction = true
+      // presentExpanded reads the session before changing another field of the same state.
+      interactor.sendAction(.presentExpanded)
+    }
+
+    interactor.store.state.playback = playback
+
+    #expect(didSendAction)
+    #expect(interactor.store.state.isExpanded)
+    #expect(interactor.store.state.playback == playback)
+  }
+
+  @MainActor
+  @Test
+  func stateSubscriptionDoesNotRetainPlayerViewControllerOrInteractor() {
+    var interactor: PlayerInteractor? = PlayerInteractor(dependency: Dependency())
+    var viewController: PlayerViewController? = PlayerViewController(interactor: interactor!)
+    let store = interactor!.store
+    weak let weakViewController = viewController
+    weak let weakInteractor = interactor
+    store.state.playback = .playing(makeSession())
+
+    viewController = nil
+    interactor = nil
+    #expect(weakViewController == nil)
+    #expect(weakInteractor == nil)
+    store.state.playback = .idle
+  }
+
+  @MainActor
+  @Test
   func controlsForwardToPersistentPlaybackController() async {
     let playbackController = PlaybackControllerSpy(initialState: .paused(makeSession()))
     let interactor = PlayerInteractor(dependency: Dependency(playbackController: playbackController))

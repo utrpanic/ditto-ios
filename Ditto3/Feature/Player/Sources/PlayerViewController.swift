@@ -16,7 +16,7 @@ final class PlayerViewController: UIHostingController<StateReader<PlayerState, P
     })
     view.backgroundColor = .clear
     updateVisibility(for: interactor.store.state)
-    cancellable = interactor.store.$state
+    cancellable = interactor.store.stateDidChange
       .removeDuplicates()
       .sink { [weak self] state in
         self?.updateVisibility(for: state)

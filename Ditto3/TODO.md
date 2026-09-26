@@ -58,3 +58,11 @@
     - Follow 변경이 Library와 Latest에 반영되는지 검증한다.
     - Play Next와 Add to Queue가 persistent Player와 Queue에 반영되는지 검증한다.
     - ViewController/Interactor 해제와 stream observation 수명을 검증한다.
+15. StateStore/StateReader의 SwiftUI 관찰을 Swift Observation으로 전환한다. ✅
+    - `@MainActor @Observable` StateStore와 StateReader의 자동 추적을 적용한다.
+    - UIKit에는 `state.didSet`에서 동기 발행하는 `stateDidChange` Publisher를 제공한다.
+    - Main 탭 선택과 Player visibility는 변경 후 Publisher를 구독한다.
+    - 기존 state/action interface, 즉시 탭 routing, 숨겨진 MiniPlayer 갱신을 유지한다.
+    - weak Router, Interactor deinit의 장기 stream 취소, 일회성 작업 완료 정책을 유지한다.
+    - 상태 변경·SwiftUI 갱신·UIKit 동기 구독·callback의 action 재진입·VC/Interactor 해제를 테스트하고 Feature/App 빌드를 검증한다.
+    - 검증: Feature 61개·App 3개 테스트 통과, Feature·App 빌드 성공.

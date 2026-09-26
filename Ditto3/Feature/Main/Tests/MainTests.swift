@@ -12,6 +12,45 @@ import UIKit
 
 struct MainTests {
   @MainActor
+  @Test
+  func stateChangesSynchronouslyUpdateSelectedTab() {
+    let interactor = MainInteractor()
+    let viewController = MainViewController(interactor: interactor)
+    viewController.loadViewIfNeeded()
+    viewController.attachDiscoverTab(UIViewController())
+    viewController.attachLatestTab(UIViewController())
+    viewController.attachLibraryTab(UIViewController())
+    viewController.attachSearchTab(UIViewController())
+
+    for (tab, index) in [(MainTab.latest, 1), (.library, 2), (.search, 3), (.discover, 0)] {
+      interactor.sendAction(.selectTab(tab))
+      #expect(viewController.selectedTab === viewController.tabs[index])
+    }
+
+    interactor.sendAction(.selectTab(.latest))
+    interactor.sendAction(.selectTab(.search))
+    #expect(viewController.selectedTab === viewController.tabs[3])
+  }
+
+  @MainActor
+  @Test
+  func stateSubscriptionDoesNotRetainMainViewControllerOrInteractor() {
+    var interactor: MainInteractor? = MainInteractor()
+    var viewController: MainViewController? = MainViewController(interactor: interactor!)
+    let store = interactor!.store
+    weak let weakViewController = viewController
+    weak let weakInteractor = interactor
+    viewController?.loadViewIfNeeded()
+    store.state.selectedTab = .latest
+
+    viewController = nil
+    interactor = nil
+    #expect(weakViewController == nil)
+    #expect(weakInteractor == nil)
+    store.state.selectedTab = .search
+  }
+
+  @MainActor
   @Test func sendSelectTabAction_updatesSelectedTab() async throws {
     let interactor = MainInteractor()
 

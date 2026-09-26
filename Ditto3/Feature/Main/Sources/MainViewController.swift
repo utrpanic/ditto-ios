@@ -40,7 +40,7 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
   private func bindState() {
     let store = interactor.store
     render(state: store.state)
-    store.$state
+    store.stateDidChange
       .removeDuplicates()
       .sink { [weak self] state in
         self?.render(state: state)

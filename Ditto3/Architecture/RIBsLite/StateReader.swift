@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 public struct StateReader<State, Content: View>: View {
-  @ObservedObject private var store: StateStore<State>
+  private let store: StateStore<State>
   private let content: (State) -> Content
 
   public init(store: StateStore<State>, @ViewBuilder content: @escaping (State) -> Content) {

@@ -106,6 +106,12 @@ Main은 tab child와 Player child의 attach/detach 및 화면 배치를 담당�
 - Store와 Repository는 View interface에 노출하지 않는다.
 - UIKit container가 tab, navigation, persistent MiniPlayer의 배치를 담당한다.
 
+`StateStore<State>`는 `@MainActor @Observable` reference type이며, Interactor가 생성하고 state를 변경한다. `StateReader`는 주입된 Store를 일반 `let` property로 보관하고 `body`에서 `store.state`를 읽어 SwiftUI의 Observation 추적에 참여한다. View에 Store나 Binding을 노출하지 않으며, 기존 value-type state와 action interface를 유지한다. 추적 단위는 Store의 `state` property이므로 state 내부 필드별로 관찰을 분리하지 않는다.
+
+UIKit의 Main 탭 선택과 Player visibility는 Store의 `stateDidChange: AnyPublisher<State, Never>`를 구독한다. Store는 `state.didSet`에서 반영된 state를 MainActor 위에서 동기 발행하므로, 구독 callback에서 action을 보내도 Interactor는 해당 mutation이 반영된 state를 읽는다. Publisher는 초기값을 replay하지 않으며, 구독자는 최초 표시 시 `store.state`를 읽는다. Store는 같은 값의 재할당도 발행하고, UI 구독자가 `removeDuplicates()`를 적용한다. 호출부에서 scheduler를 변경하지 않으며, 비동기 지연·관찰 재등록·변경 병합은 하지 않는다.
+
+SwiftUI는 Observation으로 자동 갱신하고, UIKit은 변경 후 Publisher를 사용하는 구조다. UIKit callback은 ViewController를 약하게 참조하고, VC가 소유한 `AnyCancellable`은 VC 해제 시 구독을 취소한다. Player 구독은 MiniPlayer의 화면 표시 여부와 무관하게 유지한다. Main은 동기 구독으로 선택을 반영하므로 `selectTab` 직후 `push`도 올바른 navigation stack을 사용한다.
+
 ### 4.3 Feature Reuse
 
 Podcast와 Episode Builder는 진입한 parent feature와 무관하게 동일한 dependency와 input entity로 화면을 생성한다.
@@ -119,6 +125,7 @@ Podcast와 Episode Builder는 진입한 parent feature와 무관하게 동일한
 - ViewController는 Interactor를 강하게 소유하고, Interactor는 Router를 강하게 소유한다.
 - Router는 ViewController를 약하게 참조해 `ViewController -> Interactor -> Router -> ViewController` 순환 참조를 만들지 않는다.
 - ViewController가 해제되면 Interactor도 함께 해제되고, Interactor는 deinit에서 장기 stream observation만 취소한다.
+- 공통 deactivate lifecycle은 사용하지 않는다. UIKit state 구독은 weak callback으로 VC 수명을 연장하지 않으며 VC가 소유한 cancellable로 수명을 관리한다.
 - 일회성 조회, 저장, 재생 작업은 ViewController 수명과 결합하지 않는다. UI state 반영은 weak reference로 차단하되 시작된 작업 자체는 완료한다.
 
 ## 5. Feature Responsibilities
@@ -313,7 +320,7 @@ RIB listener는 child-to-parent navigation event와 완료 event에 사용한다
 - Queue 변경: `PlaybackQueueRepository.changes()`
 - 재생 상태: `PlaybackControlling.stateChanges()`
 
-관련 Interactor는 active 상태에서 필요한 stream만 구독하고 deactivation 시 task를 취소한다. Repository snapshot을 다시 읽는 방식으로 event 유실과 중복 전달에 안전하게 만든다.
+관련 Interactor는 activation 시 필요한 stream만 구독하고 deinit에서 장기 observation task를 취소한다. 일회성 조회·저장·재생 작업은 VC 해제 후에도 완료한다. Repository snapshot을 다시 읽는 방식으로 event 유실과 중복 전달에 안전하게 만든다. Repository/Playback의 AsyncStream은 그대로 유지하며, SwiftUI state 추적에는 Observation, UIKit state 구독에는 Store의 변경 후 Publisher를 사용한다.
 
 ## 10. Latest Aggregation
 
@@ -441,7 +448,13 @@ Following, Queue, PlaybackSession은 version을 포함한 JSON snapshot으로 lo
 - Episode build from Podcast, Latest, Search, Queue
 - Main attaches persistent Player independently of selected tab
 - Player switches mini/expanded state without creating another playback owner
-- Interactor activation starts stream observations and deactivation cancels them
+- Interactor activation starts stream observations and deinit cancels them
+- StateStore replacement/nested mutation participates in Observation tracking
+- StateReader updates hosted SwiftUI content after repeated state changes
+- Main tab selection remains synchronous for immediate navigation pushes
+- StateStore publisher emits committed state synchronously for replacement/nested mutation and stops delivery after cancellation
+- Player visibility callback can send an action that reads committed playback state and mutates the same store
+- UIKit subscriptions update Main selection and hidden Player visibility synchronously without retaining ViewController/Interactor
 
 ### Manual Scenarios
 
