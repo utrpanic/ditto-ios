@@ -25,8 +25,11 @@ protocol PlayerInteractable: AnyObject {
 
 @MainActor
 final class PlayerInteractor: Interactor, PlayerInteractable {
+  private static let persistenceInterval: TimeInterval = 5
+
   private let playbackController: PlaybackControlling
   private let playbackQueueRepository: PlaybackQueueRepository
+  private let playbackSessionRepository: PlaybackSessionRepository
 
   let store = StateStore(PlayerState())
   var router: PlayerRouting?
@@ -37,10 +40,13 @@ final class PlayerInteractor: Interactor, PlayerInteractable {
   private var queueObservationTask: Task<Void, Never>?
   private var queueMutationTask: Task<Void, Never>?
   private var seekTask: Task<Void, Never>?
+  private var playbackControlTask: Task<Void, Never>?
+  private var lastPersistedSession: PlaybackSession?
 
   init(dependency: PlayerDependency) {
     self.playbackController = dependency.playbackController
     self.playbackQueueRepository = dependency.playbackQueueRepository
+    self.playbackSessionRepository = dependency.playbackSessionRepository
   }
 
   deinit {
@@ -49,19 +55,25 @@ final class PlayerInteractor: Interactor, PlayerInteractable {
     queueObservationTask?.cancel()
     queueMutationTask?.cancel()
     seekTask?.cancel()
+    playbackControlTask?.cancel()
   }
 
   override func didBecomeActive() {
     playbackObservationTask?.cancel()
     let playbackController = playbackController
-    playbackObservationTask = Task { [weak store] in
+    let playbackSessionRepository = playbackSessionRepository
+    playbackObservationTask = Task { [weak self, weak store] in
+      if let session = try? await playbackSessionRepository.loadSession() {
+        await playbackController.restore(session)
+      }
       let changes = playbackController.stateChanges()
       for await playback in changes {
-        guard !Task.isCancelled, let store else { return }
+        guard !Task.isCancelled, let self, let store else { return }
         store.state.playback = playback
         if store.state.session == nil {
           store.state.isExpanded = false
         }
+        await persist(playback)
       }
     }
 
@@ -106,10 +118,49 @@ final class PlayerInteractor: Interactor, PlayerInteractable {
     case .playing:
       playbackController.pause()
     case .paused:
-      playbackController.play()
+      playbackControlTask?.cancel()
+      let playbackController = playbackController
+      playbackControlTask = Task {
+        await playbackController.play()
+      }
     case .idle, .loading, .failed:
       break
     }
+  }
+
+  private func persist(_ playback: PlaybackState) async {
+    do {
+      switch playback {
+      case .idle:
+        try await playbackSessionRepository.clearSession()
+        lastPersistedSession = nil
+      case .loading(let session), .paused(let session):
+        try await save(session)
+      case .playing(let session):
+        guard shouldPersistProgress(session) else { return }
+        try await save(session)
+      case .failed(let session, _):
+        if let session {
+          try await save(session)
+        } else {
+          try await playbackSessionRepository.clearSession()
+          lastPersistedSession = nil
+        }
+      }
+    } catch {
+      return
+    }
+  }
+
+  private func shouldPersistProgress(_ session: PlaybackSession) -> Bool {
+    guard let lastPersistedSession else { return true }
+    guard lastPersistedSession.episode.id == session.episode.id else { return true }
+    return abs(session.position - lastPersistedSession.position) >= Self.persistenceInterval
+  }
+
+  private func save(_ session: PlaybackSession) async throws {
+    try await playbackSessionRepository.saveSession(session)
+    lastPersistedSession = session
   }
 
   private func seek(to position: TimeInterval) {

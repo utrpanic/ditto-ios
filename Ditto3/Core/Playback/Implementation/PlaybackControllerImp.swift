@@ -20,6 +20,7 @@ public final class PlaybackControllerImp: PlaybackControlling {
   private var timeObserver: Any?
   private var playbackEndObserver: Any?
   private var resetRemoteCommands: (() -> Void)?
+  private var restoredSessionNeedsPreparation = false
 
   public init(
     player: AVPlayerProtocol,
@@ -67,6 +68,7 @@ public final class PlaybackControllerImp: PlaybackControlling {
   }
 
   public func play(_ episode: Episode) async {
+    restoredSessionNeedsPreparation = false
     let session = PlaybackSession(episode: episode, position: 0, updatedAt: now())
     guard let audioURL = episode.audioURL else {
       publish(.failed(session, message: "This episode has no playable audio URL."))
@@ -84,7 +86,17 @@ public final class PlaybackControllerImp: PlaybackControlling {
     }
   }
 
-  public func play() {
+  public func restore(_ session: PlaybackSession) async {
+    let position = clamped(session.position, duration: session.episode.duration)
+    restoredSessionNeedsPreparation = true
+    publish(.paused(PlaybackSession(
+      episode: session.episode,
+      position: position,
+      updatedAt: session.updatedAt
+    )))
+  }
+
+  public func play() async {
     let session: PlaybackSession
     switch state {
     case .paused(let currentSession), .playing(let currentSession):
@@ -92,8 +104,22 @@ public final class PlaybackControllerImp: PlaybackControlling {
     case .idle, .loading, .failed:
       return
     }
-    player.play()
-    publish(.playing(updatedSession(session, position: player.playbackCurrentTime)))
+    do {
+      try audioSession.activatePlayback()
+      if restoredSessionNeedsPreparation {
+        guard let audioURL = session.episode.audioURL else {
+          publish(.failed(session, message: "This episode has no playable audio URL."))
+          return
+        }
+        player.load(url: audioURL)
+        await player.seek(to: session.position)
+        restoredSessionNeedsPreparation = false
+      }
+      player.play()
+      publish(.playing(updatedSession(session, position: player.playbackCurrentTime)))
+    } catch {
+      publish(.failed(session, message: error.localizedDescription))
+    }
   }
 
   public func pause() {
@@ -111,7 +137,9 @@ public final class PlaybackControllerImp: PlaybackControlling {
       return
     }
     let position = clamped(position, duration: session.episode.duration)
-    await player.seek(to: position)
+    if !restoredSessionNeedsPreparation {
+      await player.seek(to: position)
+    }
     let updatedSession = updatedSession(session, position: position)
 
     switch state {
@@ -127,14 +155,20 @@ public final class PlaybackControllerImp: PlaybackControlling {
   }
 
   public func skipBackward() {
-    let target = player.playbackCurrentTime - Self.backwardInterval
+    let position = restoredSessionNeedsPreparation
+      ? currentSession?.position ?? 0
+      : player.playbackCurrentTime
+    let target = position - Self.backwardInterval
     Task { @MainActor [weak self] in
       await self?.seek(to: target)
     }
   }
 
   public func skipForward() {
-    let target = player.playbackCurrentTime + Self.forwardInterval
+    let position = restoredSessionNeedsPreparation
+      ? currentSession?.position ?? 0
+      : player.playbackCurrentTime
+    let target = position + Self.forwardInterval
     Task { @MainActor [weak self] in
       await self?.seek(to: target)
     }
@@ -175,7 +209,11 @@ public final class PlaybackControllerImp: PlaybackControlling {
     resetRemoteCommands = remoteCommandCenter.configurePlaybackCommands(
       backwardInterval: Self.backwardInterval,
       forwardInterval: Self.forwardInterval,
-      play: { [weak self] in self?.play() },
+      play: { [weak self] in
+        Task { @MainActor in
+          await self?.play()
+        }
+      },
       pause: { [weak self] in self?.pause() },
       seek: { [weak self] position in
         Task { @MainActor in
@@ -189,6 +227,7 @@ public final class PlaybackControllerImp: PlaybackControlling {
 
   private func handlePlaybackEnd() {
     guard let session = currentSession else { return }
+    restoredSessionNeedsPreparation = false
     let completedSession = updatedSession(session, position: player.playbackCurrentTime)
     publish(.idle)
     for continuation in completionContinuations.values {

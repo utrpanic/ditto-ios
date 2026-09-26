@@ -268,7 +268,8 @@ public enum PlaybackState: Equatable, Sendable {
 
 public protocol PlaybackControlling: AnyObject {
   func play(_ episode: Episode) async
-  func play()
+  func restore(_ session: PlaybackSession) async
+  func play() async
   func pause()
   func seek(to position: TimeInterval) async
   func skipBackward()

@@ -6,6 +6,7 @@ import RIBsLite
 public protocol PlayerDependency {
   var playbackController: PlaybackControlling { get }
   var playbackQueueRepository: PlaybackQueueRepository { get }
+  var playbackSessionRepository: PlaybackSessionRepository { get }
 }
 
 public final class PlayerBuilder: Builder<PlayerDependency>, PlayerBuildable {

@@ -28,9 +28,40 @@ struct PlaybackControllerImpTests {
     #expect(await states.next() == .paused(makeSession(episode: episode, position: 42, now: now)))
     #expect(player.pauseCallCount == 1)
 
-    controller.play()
+    await controller.play()
     #expect(await states.next() == .playing(makeSession(episode: episode, position: 42, now: now)))
     #expect(player.playCallCount == 2)
+  }
+
+  @MainActor
+  @Test
+  func restoreDefersLoadingAndSeekingUntilPlaybackStarts() async {
+    let player = AVPlayerMock()
+    let audioSession = AVAudioSessionMock()
+    let controller = makeController(player: player, audioSession: audioSession)
+    var states = controller.stateChanges().makeAsyncIterator()
+    _ = await states.next()
+    let episode = makeEpisode(duration: 120)
+    let session = makeSession(
+      episode: episode,
+      position: 42,
+      now: Date(timeIntervalSince1970: 500)
+    )
+
+    await controller.restore(session)
+
+    #expect(await states.next() == .paused(session))
+    #expect(player.loadedURL == nil)
+    #expect(player.seekPositions.isEmpty)
+    #expect(player.playCallCount == 0)
+    #expect(audioSession.activationCallCount == 0)
+
+    await controller.play()
+
+    #expect(player.loadedURL == episode.audioURL)
+    #expect(player.seekPositions == [42])
+    #expect(player.playCallCount == 1)
+    #expect(audioSession.activationCallCount == 1)
   }
 
   @MainActor
@@ -154,6 +185,7 @@ struct PlaybackControllerImpTests {
     #expect(player.pauseCallCount == 1)
 
     remoteCommandCenter.sendPlay()
+    await waitUntil { player.playCallCount == 2 }
     #expect(player.playCallCount == 2)
 
     remoteCommandCenter.sendSeek(to: 64)

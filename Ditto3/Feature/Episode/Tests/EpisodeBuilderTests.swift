@@ -156,7 +156,8 @@ private final class PlaybackControllerSpy: PlaybackControlling {
     playedEpisode = episode
   }
 
-  func play() {}
+  func restore(_ session: PlaybackSession) async {}
+  func play() async {}
   func pause() {}
   func seek(to position: TimeInterval) async {}
   func skipBackward() {}

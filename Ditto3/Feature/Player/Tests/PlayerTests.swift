@@ -184,6 +184,79 @@ struct PlayerTests {
 
   @MainActor
   @Test
+  func persistedSessionRestoresPausedPlayerBeforeObservation() async {
+    let session = makeSession()
+    let playbackController = PlaybackControllerSpy()
+    let sessionRepository = PlaybackSessionRepositorySpy(session: session)
+    let interactor = PlayerInteractor(dependency: Dependency(
+      playbackController: playbackController,
+      playbackSessionRepository: sessionRepository
+    ))
+
+    interactor.activate()
+
+    await waitUntil { playbackController.restoredSession == session }
+    await waitUntil { interactor.store.state.playback == .paused(session) }
+    #expect(interactor.store.state.session == session)
+  }
+
+  @MainActor
+  @Test
+  func playbackProgressIsPersistedAtLimitedIntervalsAndPauseIsImmediate() async {
+    let initialSession = makeSession()
+    let playbackController = PlaybackControllerSpy(initialState: .playing(initialSession))
+    let sessionRepository = PlaybackSessionRepositorySpy()
+    let interactor = PlayerInteractor(dependency: Dependency(
+      playbackController: playbackController,
+      playbackSessionRepository: sessionRepository
+    ))
+    interactor.activate()
+    await waitUntil { await sessionRepository.savedSessions().count == 1 }
+
+    let nearbySession = PlaybackSession(
+      episode: initialSession.episode,
+      position: initialSession.position + 2,
+      updatedAt: initialSession.updatedAt
+    )
+    playbackController.emit(.playing(nearbySession))
+    await Task.yield()
+    #expect(await sessionRepository.savedSessions().count == 1)
+
+    let laterSession = PlaybackSession(
+      episode: initialSession.episode,
+      position: initialSession.position + 5,
+      updatedAt: initialSession.updatedAt
+    )
+    playbackController.emit(.playing(laterSession))
+    await waitUntil { await sessionRepository.savedSessions().count == 2 }
+    #expect(await sessionRepository.savedSessions().count == 2)
+
+    playbackController.emit(.paused(nearbySession))
+    await waitUntil { await sessionRepository.savedSessions().count == 3 }
+    #expect(await sessionRepository.savedSessions().count == 3)
+    #expect(await sessionRepository.savedSessions().last == nearbySession)
+  }
+
+  @MainActor
+  @Test
+  func idlePlaybackClearsPersistedSession() async {
+    let playbackController = PlaybackControllerSpy(initialState: .playing(makeSession()))
+    let sessionRepository = PlaybackSessionRepositorySpy()
+    let interactor = PlayerInteractor(dependency: Dependency(
+      playbackController: playbackController,
+      playbackSessionRepository: sessionRepository
+    ))
+    interactor.activate()
+    await waitUntil { await sessionRepository.savedSessions().count == 1 }
+
+    playbackController.emit(.idle)
+
+    await waitUntil { await sessionRepository.clearCallCount() == 1 }
+    #expect(await sessionRepository.currentSession() == nil)
+  }
+
+  @MainActor
+  @Test
   func queueMutationFailureKeepsSnapshotAndPublishesMessage() async {
     let item = makeQueueItem(id: "next")
     let queueRepository = PlaybackQueueRepositorySpy(items: [item], failsMutations: true)
@@ -241,19 +314,23 @@ private func waitUntil(_ condition: () async -> Bool) async {
 private struct Dependency: PlayerDependency {
   let playbackController: PlaybackControlling
   let playbackQueueRepository: PlaybackQueueRepository
+  let playbackSessionRepository: PlaybackSessionRepository
 
   init(
     playbackController: PlaybackControlling? = nil,
-    playbackQueueRepository: PlaybackQueueRepository? = nil
+    playbackQueueRepository: PlaybackQueueRepository? = nil,
+    playbackSessionRepository: PlaybackSessionRepository? = nil
   ) {
     self.playbackController = playbackController ?? PlaybackControllerSpy()
     self.playbackQueueRepository = playbackQueueRepository ?? PlaybackQueueRepositorySpy()
+    self.playbackSessionRepository = playbackSessionRepository ?? PlaybackSessionRepositorySpy()
   }
 }
 
 @MainActor
 private final class PlaybackControllerSpy: PlaybackControlling {
   let initialState: PlaybackState
+  private var currentState: PlaybackState
   private var continuations: [AsyncStream<PlaybackState>.Continuation] = []
   private var completionContinuations: [AsyncStream<PlaybackSession>.Continuation] = []
   private(set) var playCallCount = 0
@@ -264,16 +341,24 @@ private final class PlaybackControllerSpy: PlaybackControlling {
   private(set) var streamCallCount = 0
   private(set) var completionStreamCallCount = 0
   private(set) var playedEpisode: Episode?
+  private(set) var restoredSession: PlaybackSession?
 
   init(initialState: PlaybackState = .idle) {
     self.initialState = initialState
+    self.currentState = initialState
   }
 
   func play(_ episode: Episode) async {
     playedEpisode = episode
   }
 
-  func play() {
+  func restore(_ session: PlaybackSession) async {
+    restoredSession = session
+    currentState = .paused(session)
+    emit(currentState)
+  }
+
+  func play() async {
     playCallCount += 1
   }
 
@@ -296,7 +381,7 @@ private final class PlaybackControllerSpy: PlaybackControlling {
   func stateChanges() -> AsyncStream<PlaybackState> {
     streamCallCount += 1
     let (stream, continuation) = AsyncStream<PlaybackState>.makeStream()
-    continuation.yield(initialState)
+    continuation.yield(currentState)
     continuations.append(continuation)
     return stream
   }
@@ -309,6 +394,7 @@ private final class PlaybackControllerSpy: PlaybackControlling {
   }
 
   func emit(_ state: PlaybackState) {
+    currentState = state
     for continuation in continuations {
       continuation.yield(state)
     }
@@ -318,6 +404,42 @@ private final class PlaybackControllerSpy: PlaybackControlling {
     for continuation in completionContinuations {
       continuation.yield(session)
     }
+  }
+}
+
+private actor PlaybackSessionRepositorySpy: PlaybackSessionRepository {
+  private var session: PlaybackSession?
+  private var saved: [PlaybackSession] = []
+  private var clearCalls = 0
+
+  init(session: PlaybackSession? = nil) {
+    self.session = session
+  }
+
+  func loadSession() -> PlaybackSession? {
+    session
+  }
+
+  func saveSession(_ session: PlaybackSession) {
+    self.session = session
+    saved.append(session)
+  }
+
+  func clearSession() {
+    session = nil
+    clearCalls += 1
+  }
+
+  func savedSessions() -> [PlaybackSession] {
+    saved
+  }
+
+  func currentSession() -> PlaybackSession? {
+    session
+  }
+
+  func clearCallCount() -> Int {
+    clearCalls
   }
 }
 
