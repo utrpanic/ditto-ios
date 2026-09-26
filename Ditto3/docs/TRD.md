@@ -233,6 +233,7 @@ public protocol FollowingRepository {
 ```swift
 public protocol PlaybackQueueRepository {
   func fetchQueue() async throws -> [QueueItem]
+  func dequeue() async throws -> QueueItem?
   func playNext(_ episode: Episode) async throws
   func addToQueue(_ episode: Episode) async throws
   func move(episodeID: EpisodeID, to index: Int) async throws
@@ -242,7 +243,7 @@ public protocol PlaybackQueueRepository {
 }
 ```
 
-`playNext`는 EpisodeID 기준으로 기존 항목을 제거한 뒤 Queue의 첫 위치에 삽입한다. `addToQueue`는 같은 방식으로 중복을 제거한 뒤 마지막 위치에 삽입한다.
+`dequeue`는 Queue의 첫 항목을 저장소에서 원자적으로 제거해 반환한다. `playNext`는 EpisodeID 기준으로 기존 항목을 제거한 뒤 Queue의 첫 위치에 삽입한다. `addToQueue`는 같은 방식으로 중복을 제거한 뒤 마지막 위치에 삽입한다.
 
 ### PlaybackSessionRepository
 
@@ -273,10 +274,11 @@ public protocol PlaybackControlling: AnyObject {
   func skipBackward()
   func skipForward()
   func stateChanges() -> AsyncStream<PlaybackState>
+  func completionEvents() -> AsyncStream<PlaybackSession>
 }
 ```
 
-Player Interactor는 `PlaybackControlling`과 persistence repository를 조합한다. Feature는 `AVPlayer`에 직접 의존하지 않는다. `PlaybackControllerImp`는 Core/Playback/Implementation에 위치하고, AppComponent가 실제 Apple system 객체를 주입한다.
+Player Interactor는 `PlaybackControlling`과 persistence repository를 조합한다. 재생 완료 이벤트를 받으면 Queue의 첫 항목을 `dequeue`하고 다음 Episode를 재생한다. Feature는 `AVPlayer`에 직접 의존하지 않는다. `PlaybackControllerImp`는 Core/Playback/Implementation에 위치하고, AppComponent가 실제 Apple system 객체를 주입한다.
 
 ```swift
 PlaybackControllerImp(
@@ -366,6 +368,16 @@ User taps Add to Queue
 -> PlaybackQueueRepository.addToQueue(episode)
 -> deduplicate and place at the end of Queue
 -> Player reloads Queue
+```
+
+### Automatic Queue Progression
+
+```text
+AVPlayer item finishes
+-> PlaybackControlling emits the completed session and becomes idle
+-> persistent Player dequeues the first QueueItem
+-> if an item exists, PlaybackControlling starts its Episode
+-> otherwise Player remains idle
 ```
 
 Follow와 Queue는 독립적이므로 Unfollow가 Queue를 변경하지 않는다.

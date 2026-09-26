@@ -33,6 +33,7 @@ final class PlayerInteractor: Interactor, PlayerInteractable {
   weak var listener: PlayerListener?
 
   private var playbackObservationTask: Task<Void, Never>?
+  private var completionObservationTask: Task<Void, Never>?
   private var queueObservationTask: Task<Void, Never>?
   private var queueMutationTask: Task<Void, Never>?
   private var seekTask: Task<Void, Never>?
@@ -44,6 +45,7 @@ final class PlayerInteractor: Interactor, PlayerInteractable {
 
   deinit {
     playbackObservationTask?.cancel()
+    completionObservationTask?.cancel()
     queueObservationTask?.cancel()
     queueMutationTask?.cancel()
     seekTask?.cancel()
@@ -63,6 +65,7 @@ final class PlayerInteractor: Interactor, PlayerInteractable {
       }
     }
 
+    observePlaybackCompletion()
     observeQueue()
   }
 
@@ -126,6 +129,25 @@ final class PlayerInteractor: Interactor, PlayerInteractable {
       for await _ in changes {
         guard !Task.isCancelled else { return }
         await Self.reloadQueue(from: playbackQueueRepository, into: store)
+      }
+    }
+  }
+
+  private func observePlaybackCompletion() {
+    completionObservationTask?.cancel()
+    let playbackController = playbackController
+    let playbackQueueRepository = playbackQueueRepository
+    completionObservationTask = Task { [weak store] in
+      let completions = playbackController.completionEvents()
+      for await _ in completions {
+        guard !Task.isCancelled else { return }
+        do {
+          guard let item = try await playbackQueueRepository.dequeue() else { continue }
+          await playbackController.play(item.episode)
+          store?.state.queueFailureMessage = nil
+        } catch {
+          store?.state.queueFailureMessage = error.localizedDescription
+        }
       }
     }
   }

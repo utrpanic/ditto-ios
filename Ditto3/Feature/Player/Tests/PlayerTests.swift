@@ -146,6 +146,44 @@ struct PlayerTests {
 
   @MainActor
   @Test
+  func playbackCompletionDequeuesAndPlaysNextEpisode() async {
+    let next = makeQueueItem(id: "next")
+    let later = makeQueueItem(id: "later")
+    let playbackController = PlaybackControllerSpy(initialState: .playing(makeSession()))
+    let queueRepository = PlaybackQueueRepositorySpy(items: [next, later])
+    let interactor = PlayerInteractor(dependency: Dependency(
+      playbackController: playbackController,
+      playbackQueueRepository: queueRepository
+    ))
+    interactor.activate()
+    await waitUntil { playbackController.completionStreamCallCount == 1 }
+
+    playbackController.emitCompletion(makeSession())
+
+    await waitUntil { playbackController.playedEpisode == next.episode }
+    #expect(await queueRepository.itemIDs() == [later.episode.id])
+  }
+
+  @MainActor
+  @Test
+  func playbackCompletionWithEmptyQueueLeavesPlaybackIdle() async {
+    let playbackController = PlaybackControllerSpy(initialState: .playing(makeSession()))
+    let queueRepository = PlaybackQueueRepositorySpy()
+    let interactor = PlayerInteractor(dependency: Dependency(
+      playbackController: playbackController,
+      playbackQueueRepository: queueRepository
+    ))
+    interactor.activate()
+    await waitUntil { playbackController.completionStreamCallCount == 1 }
+
+    playbackController.emitCompletion(makeSession())
+    await waitUntil { await queueRepository.dequeueCalls() == 1 }
+
+    #expect(playbackController.playedEpisode == nil)
+  }
+
+  @MainActor
+  @Test
   func queueMutationFailureKeepsSnapshotAndPublishesMessage() async {
     let item = makeQueueItem(id: "next")
     let queueRepository = PlaybackQueueRepositorySpy(items: [item], failsMutations: true)
@@ -217,12 +255,14 @@ private struct Dependency: PlayerDependency {
 private final class PlaybackControllerSpy: PlaybackControlling {
   let initialState: PlaybackState
   private var continuations: [AsyncStream<PlaybackState>.Continuation] = []
+  private var completionContinuations: [AsyncStream<PlaybackSession>.Continuation] = []
   private(set) var playCallCount = 0
   private(set) var pauseCallCount = 0
   private(set) var skipBackwardCallCount = 0
   private(set) var skipForwardCallCount = 0
   private(set) var seekPositions: [TimeInterval] = []
   private(set) var streamCallCount = 0
+  private(set) var completionStreamCallCount = 0
   private(set) var playedEpisode: Episode?
 
   init(initialState: PlaybackState = .idle) {
@@ -261,9 +301,22 @@ private final class PlaybackControllerSpy: PlaybackControlling {
     return stream
   }
 
+  func completionEvents() -> AsyncStream<PlaybackSession> {
+    completionStreamCallCount += 1
+    return AsyncStream { continuation in
+      completionContinuations.append(continuation)
+    }
+  }
+
   func emit(_ state: PlaybackState) {
     for continuation in continuations {
       continuation.yield(state)
+    }
+  }
+
+  func emitCompletion(_ session: PlaybackSession) {
+    for continuation in completionContinuations {
+      continuation.yield(session)
     }
   }
 }
@@ -274,6 +327,7 @@ private actor PlaybackQueueRepositorySpy: PlaybackQueueRepository {
   }
 
   private var items: [QueueItem]
+  private var dequeueCallCount = 0
   private let failsMutations: Bool
   private var continuations: [AsyncStream<Void>.Continuation] = []
 
@@ -283,6 +337,15 @@ private actor PlaybackQueueRepositorySpy: PlaybackQueueRepository {
   }
 
   func fetchQueue() -> [QueueItem] { items }
+
+  func dequeue() throws -> QueueItem? {
+    dequeueCallCount += 1
+    if failsMutations { throw MutationError.failed }
+    guard !items.isEmpty else { return nil }
+    let item = items.removeFirst()
+    emitChange()
+    return item
+  }
 
   func playNext(_ episode: Episode) throws {
     if failsMutations { throw MutationError.failed }
@@ -331,6 +394,10 @@ private actor PlaybackQueueRepositorySpy: PlaybackQueueRepository {
 
   func itemIDs() -> [EpisodeID] {
     items.map(\.episode.id)
+  }
+
+  func dequeueCalls() -> Int {
+    dequeueCallCount
   }
 
   private func emitChange() {

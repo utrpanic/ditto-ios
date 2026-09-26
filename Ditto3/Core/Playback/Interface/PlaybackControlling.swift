@@ -10,4 +10,5 @@ public protocol PlaybackControlling: AnyObject {
   func skipBackward()
   func skipForward()
   func stateChanges() -> AsyncStream<PlaybackState>
+  func completionEvents() -> AsyncStream<PlaybackSession>
 }

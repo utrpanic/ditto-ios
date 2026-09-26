@@ -10,6 +10,7 @@ public final class AVPlayerMock: AVPlayerProtocol {
   public private(set) var seekPositions: [TimeInterval] = []
 
   private var timeHandler: ((TimeInterval) -> Void)?
+  private var playbackEndHandler: (() -> Void)?
 
   public init() {}
 
@@ -31,6 +32,15 @@ public final class AVPlayerMock: AVPlayerProtocol {
     playbackCurrentTime = position
   }
 
+  public func observePlaybackEnd(_ handler: @escaping @MainActor () -> Void) -> Any {
+    playbackEndHandler = handler
+    return NSObject()
+  }
+
+  public func removePlaybackEndObserver(_ observer: Any) {
+    playbackEndHandler = nil
+  }
+
   public func addPeriodicTimeObserver(_ handler: @escaping (TimeInterval) -> Void) -> Any {
     timeHandler = handler
     return NSObject()
@@ -43,5 +53,9 @@ public final class AVPlayerMock: AVPlayerProtocol {
   public func emitTime(_ position: TimeInterval) {
     playbackCurrentTime = position
     timeHandler?(position)
+  }
+
+  public func emitPlaybackEnd() {
+    playbackEndHandler?()
   }
 }

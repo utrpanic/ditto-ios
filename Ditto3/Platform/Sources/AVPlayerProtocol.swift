@@ -8,6 +8,8 @@ public protocol AVPlayerProtocol: AnyObject {
   func play()
   func pause()
   func seek(to position: TimeInterval) async
+  func observePlaybackEnd(_ handler: @escaping @MainActor () -> Void) -> Any
+  func removePlaybackEndObserver(_ observer: Any)
   func addPeriodicTimeObserver(_ handler: @escaping (TimeInterval) -> Void) -> Any
   func removeTimeObserver(_ observer: Any)
 }
@@ -29,6 +31,23 @@ extension AVPlayer: AVPlayerProtocol {
         continuation.resume()
       }
     }
+  }
+
+  public func observePlaybackEnd(_ handler: @escaping @MainActor () -> Void) -> Any {
+    NotificationCenter.default.addObserver(
+      forName: .AVPlayerItemDidPlayToEndTime,
+      object: nil,
+      queue: .main
+    ) { [weak self] notification in
+      guard let self, notification.object as? AVPlayerItem === currentItem else { return }
+      Task { @MainActor in
+        handler()
+      }
+    }
+  }
+
+  public func removePlaybackEndObserver(_ observer: Any) {
+    NotificationCenter.default.removeObserver(observer)
   }
 
   public func addPeriodicTimeObserver(_ handler: @escaping (TimeInterval) -> Void) -> Any {

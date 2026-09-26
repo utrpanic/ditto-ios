@@ -46,6 +46,7 @@
     - Episode 상세에 Play Next와 Add to Queue action을 추가한다.
     - expanded Player 안에 Queue를 표시한다.
     - Queue 선택, 재정렬, 제거를 연결한다.
+    - Episode 재생 완료 시 Queue의 첫 항목을 제거하고 자동 재생한다.
 13. Resume Playback을 구현한다.
     - `PlaybackSessionRepository`를 추가한다.
     - 현재 Episode snapshot과 position을 저장한다.

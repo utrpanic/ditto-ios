@@ -77,6 +77,36 @@ struct PlaybackQueueRepositoryImpTests {
   }
 
   @Test
+  func dequeueReturnsAndRemovesFirstItem() async throws {
+    let userDefaults = UserDefaultsMock()
+    let repository = PlaybackQueueRepositoryImp(userDefaults: userDefaults)
+    let firstEpisode = makeEpisode(id: "first")
+    let secondEpisode = makeEpisode(id: "second")
+    try await repository.addToQueue(firstEpisode)
+    try await repository.addToQueue(secondEpisode)
+    let stream = await repository.changes()
+    var iterator = stream.makeAsyncIterator()
+
+    let dequeuedItem = try await repository.dequeue()
+    let dequeueChange: Void? = await iterator.next()
+
+    #expect(dequeuedItem?.episode == firstEpisode)
+    #expect(dequeueChange != nil)
+    #expect(try await repository.fetchQueue().map(\.episode.id) == [secondEpisode.id])
+    let restoredRepository = PlaybackQueueRepositoryImp(userDefaults: userDefaults)
+    #expect(try await restoredRepository.fetchQueue().map(\.episode.id) == [secondEpisode.id])
+  }
+
+  @Test
+  func dequeueFromEmptyQueueDoesNotPersistOrEmitChange() async throws {
+    let userDefaults = UserDefaultsMock()
+    let repository = PlaybackQueueRepositoryImp(userDefaults: userDefaults)
+
+    #expect(try await repository.dequeue() == nil)
+    #expect(userDefaults.persistedData(forKey: "playback-queue") == nil)
+  }
+
+  @Test
   func moveUsesFinalDestinationIndexAndPreservesItemSnapshot() async throws {
     let repository = PlaybackQueueRepositoryImp(userDefaults: UserDefaultsMock())
     let firstEpisode = makeEpisode(id: "first")

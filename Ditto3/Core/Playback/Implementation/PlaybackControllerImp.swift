@@ -16,7 +16,9 @@ public final class PlaybackControllerImp: PlaybackControlling {
 
   private var state: PlaybackState = .idle
   private var changeContinuations: [UUID: AsyncStream<PlaybackState>.Continuation] = [:]
+  private var completionContinuations: [UUID: AsyncStream<PlaybackSession>.Continuation] = [:]
   private var timeObserver: Any?
+  private var playbackEndObserver: Any?
   private var resetRemoteCommands: (() -> Void)?
 
   public init(
@@ -51,10 +53,14 @@ public final class PlaybackControllerImp: PlaybackControlling {
   deinit {
     let player = player
     let timeObserver = timeObserver
+    let playbackEndObserver = playbackEndObserver
     let resetRemoteCommands = resetRemoteCommands
     Task { @MainActor in
       if let timeObserver {
         player.removeTimeObserver(timeObserver)
+      }
+      if let playbackEndObserver {
+        player.removePlaybackEndObserver(playbackEndObserver)
       }
       resetRemoteCommands?()
     }
@@ -147,9 +153,24 @@ public final class PlaybackControllerImp: PlaybackControlling {
     return stream
   }
 
+  public func completionEvents() -> AsyncStream<PlaybackSession> {
+    let id = UUID()
+    let (stream, continuation) = AsyncStream<PlaybackSession>.makeStream()
+    continuation.onTermination = { [weak self] _ in
+      Task { @MainActor in
+        self?.completionContinuations[id] = nil
+      }
+    }
+    completionContinuations[id] = continuation
+    return stream
+  }
+
   private func configureSystemObservers() {
     timeObserver = player.addPeriodicTimeObserver { [weak self] position in
       self?.updatePosition(position)
+    }
+    playbackEndObserver = player.observePlaybackEnd { [weak self] in
+      self?.handlePlaybackEnd()
     }
     resetRemoteCommands = remoteCommandCenter.configurePlaybackCommands(
       backwardInterval: Self.backwardInterval,
@@ -164,6 +185,15 @@ public final class PlaybackControllerImp: PlaybackControlling {
       skipBackward: { [weak self] in self?.skipBackward() },
       skipForward: { [weak self] in self?.skipForward() }
     )
+  }
+
+  private func handlePlaybackEnd() {
+    guard let session = currentSession else { return }
+    let completedSession = updatedSession(session, position: player.playbackCurrentTime)
+    publish(.idle)
+    for continuation in completionContinuations.values {
+      continuation.yield(completedSession)
+    }
   }
 
   private var currentSession: PlaybackSession? {

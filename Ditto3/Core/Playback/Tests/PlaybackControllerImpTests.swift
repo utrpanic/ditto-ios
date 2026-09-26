@@ -83,6 +83,27 @@ struct PlaybackControllerImpTests {
 
   @MainActor
   @Test
+  func playbackEndPublishesCompletedSessionAndReturnsToIdle() async {
+    let player = AVPlayerMock()
+    let now = Date(timeIntervalSince1970: 1_000)
+    let controller = makeController(player: player, now: now)
+    var states = controller.stateChanges().makeAsyncIterator()
+    var completions = controller.completionEvents().makeAsyncIterator()
+    _ = await states.next()
+    let episode = makeEpisode()
+    await controller.play(episode)
+    _ = await states.next()
+    _ = await states.next()
+    player.playbackCurrentTime = 120
+
+    player.emitPlaybackEnd()
+
+    #expect(await states.next() == .idle)
+    #expect(await completions.next() == makeSession(episode: episode, position: 120, now: now))
+  }
+
+  @MainActor
+  @Test
   func missingAudioURLPublishesFailure() async {
     let controller = makeController()
     var states = controller.stateChanges().makeAsyncIterator()

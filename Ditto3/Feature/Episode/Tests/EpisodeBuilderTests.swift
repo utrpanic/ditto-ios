@@ -166,12 +166,17 @@ private final class PlaybackControllerSpy: PlaybackControlling {
       continuation.yield(initialState)
     }
   }
+
+  func completionEvents() -> AsyncStream<PlaybackSession> {
+    AsyncStream { _ in }
+  }
 }
 
 private actor PlaybackQueueRepositorySpy: PlaybackQueueRepository {
   private var episodes: [Entity.Episode] = []
 
   func fetchQueue() -> [QueueItem] { [] }
+  func dequeue() -> QueueItem? { nil }
   func playNext(_ episode: Entity.Episode) { episodes.insert(episode, at: 0) }
   func addToQueue(_ episode: Entity.Episode) { episodes.append(episode) }
   func move(episodeID: EpisodeID, to index: Int) {}

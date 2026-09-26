@@ -24,6 +24,15 @@ public actor PlaybackQueueRepositoryImp: PlaybackQueueRepository {
     load()
   }
 
+  public func dequeue() throws -> QueueItem? {
+    var queue = load()
+    guard !queue.isEmpty else { return nil }
+    let item = queue.removeFirst()
+    try persist(queue)
+    notifyChanges()
+    return item
+  }
+
   public func playNext(_ episode: Episode) throws {
     var queue = load()
     queue.removeAll { $0.episode.id == episode.id }
