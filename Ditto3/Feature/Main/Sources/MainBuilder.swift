@@ -26,7 +26,6 @@ public final class MainBuilder: Builder<MainDependency>, MainBuildable {
     )
     interactor.router = router
     interactor.listener = listener
-    interactor.activate()
     return (viewController, router)
   }
 }

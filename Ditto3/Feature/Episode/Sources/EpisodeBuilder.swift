@@ -16,7 +16,6 @@ public final class EpisodeBuilder: Builder<EpisodeDependency>, EpisodeBuildable 
     let router = EpisodeRouter(dependency: dependency, viewController: viewController)
     interactor.router = router
     interactor.listener = listener
-    interactor.activate()
     return viewController
   }
 }

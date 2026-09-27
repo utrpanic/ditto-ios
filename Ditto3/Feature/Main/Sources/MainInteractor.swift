@@ -7,6 +7,7 @@ import RIBsLite
 import Search
 
 enum MainAction {
+  case viewDidLoad
   case selectTab(MainTab)
 }
 
@@ -19,7 +20,12 @@ protocol MainInteractable: AnyObject, DiscoverListener, LatestListener, LibraryL
 @MainActor
 final class MainInteractor: Interactor, MainInteractable {
   let store: StateStore<MainState>
-  var router: MainRouting?
+  var router: MainRouting? {
+    didSet {
+      routeToInitialTabIfNeeded()
+    }
+  }
+  private var needsInitialRouting = false
   weak var listener: MainListener?
 
   override init() {
@@ -27,8 +33,11 @@ final class MainInteractor: Interactor, MainInteractable {
     super.init()
   }
 
-  override func didBecomeActive() {
-    router?.routeToMain(tab: .discover)
+  private func routeToInitialTabIfNeeded() {
+    // UITabBarController can load its view before the builder connects the router.
+    guard needsInitialRouting, let router else { return }
+    needsInitialRouting = false
+    router.routeToMain(tab: .discover)
   }
 
   func playerDidRequestEpisode(_ episode: Episode) {
@@ -41,6 +50,9 @@ final class MainInteractor: Interactor, MainInteractable {
 
   func sendAction(_ action: MainAction) {
     switch action {
+    case .viewDidLoad:
+      needsInitialRouting = true
+      routeToInitialTabIfNeeded()
     case let .selectTab(tab):
       store.state.selectedTab = tab
     }

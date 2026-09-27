@@ -20,6 +20,11 @@ struct PlayerTests {
     let interactor = try #require(viewController.interactor as? PlayerInteractor)
     #expect(interactor.listener === listener)
     #expect(interactor.router != nil)
+    #expect(!viewController.isViewLoaded)
+    #expect(listener.visibility.isEmpty)
+
+    viewController.loadViewIfNeeded()
+
     #expect(listener.visibility == [false])
   }
 
@@ -30,7 +35,7 @@ struct PlayerTests {
     let interactor = PlayerInteractor(dependency: Dependency(playbackController: playbackController))
     let listener = Listener()
     interactor.listener = listener
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     #expect(listener.visibility == [false])
     await waitUntil { playbackController.streamCallCount == 1 }
 
@@ -52,7 +57,7 @@ struct PlayerTests {
     let listener = Listener()
     interactor.listener = listener
 
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     await waitUntil { listener.visibility.last == true }
 
     #expect(interactor.store.state.playback == playback)
@@ -74,7 +79,7 @@ struct PlayerTests {
       interactor.sendAction(.presentExpanded)
     }
     interactor.listener = listener
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     await waitUntil { playbackController.streamCallCount == 1 }
 
     playbackController.emit(playback)
@@ -107,7 +112,7 @@ struct PlayerTests {
   func controlsForwardToPersistentPlaybackController() async {
     let playbackController = PlaybackControllerSpy(initialState: .paused(makeSession()))
     let interactor = PlayerInteractor(dependency: Dependency(playbackController: playbackController))
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     await waitUntil {
       interactor.store.state.playback == playbackController.initialState
     }
@@ -129,7 +134,7 @@ struct PlayerTests {
   func expandedPresentationIsPlayerState() async {
     let playbackController = PlaybackControllerSpy(initialState: .playing(makeSession()))
     let interactor = PlayerInteractor(dependency: Dependency(playbackController: playbackController))
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     await waitUntil { interactor.store.state.session != nil }
 
     interactor.sendAction(.presentExpanded)
@@ -153,7 +158,7 @@ struct PlayerTests {
       playbackQueueRepository: queueRepository
     ))
 
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
 
     await waitUntil { interactor.store.state.queue == [item] }
     let laterItem = makeQueueItem(id: "later")
@@ -171,7 +176,7 @@ struct PlayerTests {
     let interactor = PlayerInteractor(dependency: Dependency(
       playbackQueueRepository: queueRepository
     ))
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     await waitUntil { interactor.store.state.queue == [first, second] }
 
     interactor.sendAction(.moveQueueItem(first.episode.id, to: 1))
@@ -195,7 +200,7 @@ struct PlayerTests {
       playbackController: playbackController,
       playbackQueueRepository: queueRepository
     ))
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     await waitUntil { interactor.store.state.queue == [item] }
 
     interactor.sendAction(.playQueueItem(item.episode.id))
@@ -214,7 +219,7 @@ struct PlayerTests {
     ))
     let listener = Listener()
     interactor.listener = listener
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     await waitUntil { interactor.store.state.queue == [item] }
     interactor.store.state.isExpanded = true
 
@@ -249,7 +254,7 @@ struct PlayerTests {
       playbackQueueRepository: queueRepository
     ))
     weak let weakInteractor = interactor
-    interactor?.activate()
+    interactor?.sendAction(.viewDidLoad)
     await waitUntil {
       let queueCounts = await queueRepository.observationCounts()
       return playbackController.streamCallCount == 1
@@ -279,7 +284,7 @@ struct PlayerTests {
       playbackController: playbackController,
       playbackQueueRepository: queueRepository
     ))
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     await waitUntil { playbackController.completionStreamCallCount == 1 }
 
     playbackController.emitCompletion(makeSession())
@@ -297,7 +302,7 @@ struct PlayerTests {
       playbackController: playbackController,
       playbackQueueRepository: queueRepository
     ))
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     await waitUntil { playbackController.completionStreamCallCount == 1 }
 
     playbackController.emitCompletion(makeSession())
@@ -317,7 +322,7 @@ struct PlayerTests {
       playbackSessionRepository: sessionRepository
     ))
 
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
 
     await waitUntil { playbackController.restoredSession == session }
     await waitUntil { interactor.store.state.playback == .paused(session) }
@@ -334,7 +339,7 @@ struct PlayerTests {
       playbackController: playbackController,
       playbackSessionRepository: sessionRepository
     ))
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     await waitUntil { await sessionRepository.savedSessions().count == 1 }
 
     let nearbySession = PlaybackSession(
@@ -370,7 +375,7 @@ struct PlayerTests {
       playbackController: playbackController,
       playbackSessionRepository: sessionRepository
     ))
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     await waitUntil { await sessionRepository.savedSessions().count == 1 }
 
     playbackController.emit(.idle)
@@ -387,7 +392,7 @@ struct PlayerTests {
     let interactor = PlayerInteractor(dependency: Dependency(
       playbackQueueRepository: queueRepository
     ))
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     await waitUntil { interactor.store.state.queue == [item] }
 
     interactor.sendAction(.removeQueueItem(item.episode.id))

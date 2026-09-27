@@ -41,7 +41,7 @@ struct LatestTests {
     )
     let interactor = LatestInteractor(dependency: dependency)
 
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     await waitUntil {
       guard case .loaded = interactor.store.state else { return false }
       return true
@@ -74,7 +74,7 @@ struct LatestTests {
     )
     let interactor = LatestInteractor(dependency: dependency)
 
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     await waitUntil {
       interactor.store.state == .loaded(episodes: [episode], failedPodcastCount: 1)
     }
@@ -92,7 +92,7 @@ struct LatestTests {
     )
     let interactor = LatestInteractor(dependency: dependency)
 
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     await waitUntil {
       guard case .failed = interactor.store.state else { return false }
       return true
@@ -115,7 +115,7 @@ struct LatestTests {
       episodeRepository: EpisodeRepositorySpy(episodesByPodcastID: [podcast.id: [episode]])
     )
     let interactor = LatestInteractor(dependency: dependency)
-    interactor.activate()
+    interactor.sendAction(.viewDidLoad)
     await waitUntil {
       interactor.store.state == .loaded(episodes: [], failedPodcastCount: 0)
     }

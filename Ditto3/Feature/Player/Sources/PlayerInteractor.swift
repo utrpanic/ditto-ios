@@ -5,6 +5,7 @@ import Repository
 import RIBsLite
 
 enum PlayerAction {
+  case viewDidLoad
   case togglePlayback
   case seek(to: TimeInterval)
   case skipBackward
@@ -56,37 +57,35 @@ final class PlayerInteractor: Interactor, PlayerInteractable {
     queueObservationTask?.cancel()
   }
 
-  override func didBecomeActive() {
-    listener?.playerVisibilityDidChange(store.state.session != nil)
-    playbackObservationTask?.cancel()
-    let playbackController = playbackController
-    let playbackSessionRepository = playbackSessionRepository
-    playbackObservationTask = Task { [weak self, weak store] in
-      if let session = try? await playbackSessionRepository.loadSession() {
-        await playbackController.restore(session)
-      }
-      let changes = playbackController.stateChanges()
-      for await playback in changes {
-        guard !Task.isCancelled, let self, let store else { return }
-        let wasVisible = store.state.session != nil
-        store.state.playback = playback
-        if store.state.session == nil {
-          store.state.isExpanded = false
-        }
-        let isVisible = store.state.session != nil
-        if isVisible != wasVisible {
-          listener?.playerVisibilityDidChange(isVisible)
-        }
-        await persist(playback)
-      }
-    }
-
-    observePlaybackCompletion()
-    observeQueue()
-  }
-
   func sendAction(_ action: PlayerAction) {
     switch action {
+    case .viewDidLoad:
+      listener?.playerVisibilityDidChange(store.state.session != nil)
+      playbackObservationTask?.cancel()
+      let playbackController = playbackController
+      let playbackSessionRepository = playbackSessionRepository
+      playbackObservationTask = Task { [weak self, weak store] in
+        if let session = try? await playbackSessionRepository.loadSession() {
+          await playbackController.restore(session)
+        }
+        let changes = playbackController.stateChanges()
+        for await playback in changes {
+          guard !Task.isCancelled, let self, let store else { return }
+          let wasVisible = store.state.session != nil
+          store.state.playback = playback
+          if store.state.session == nil {
+            store.state.isExpanded = false
+          }
+          let isVisible = store.state.session != nil
+          if isVisible != wasVisible {
+            listener?.playerVisibilityDidChange(isVisible)
+          }
+          await persist(playback)
+        }
+      }
+
+      observePlaybackCompletion()
+      observeQueue()
     case .togglePlayback:
       togglePlayback()
     case .seek(let position):

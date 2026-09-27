@@ -4,6 +4,7 @@ import Repository
 import RIBsLite
 
 enum PodcastAction {
+  case viewDidLoad
   case retryEpisodes
   case retryFollowing
   case toggleFollowing
@@ -39,13 +40,11 @@ final class PodcastInteractor: Interactor, PodcastInteractable {
     followingObservationTask?.cancel()
   }
 
-  override func didBecomeActive() {
-    loadEpisodes()
-    observeFollowing()
-  }
-
   func sendAction(_ action: PodcastAction) {
     switch action {
+    case .viewDidLoad:
+      loadEpisodes()
+      observeFollowing()
     case .retryEpisodes:
       loadEpisodes()
     case .retryFollowing:

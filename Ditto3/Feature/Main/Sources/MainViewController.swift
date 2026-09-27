@@ -34,12 +34,11 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
     super.viewDidLoad()
     delegate = self
     bindState()
+    interactor.sendAction(.viewDidLoad)
   }
 
   private func bindState() {
-    let store = interactor.store
-    render(state: store.state)
-    store.stateDidChange
+    interactor.store.stateDidChange
       .removeDuplicates()
       .sink { [weak self] state in
         self?.render(state: state)

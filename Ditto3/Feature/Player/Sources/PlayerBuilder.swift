@@ -17,7 +17,6 @@ public final class PlayerBuilder: Builder<PlayerDependency>, PlayerBuildable {
     let router = PlayerRouter(dependency: dependency, viewController: viewController)
     interactor.router = router
     interactor.listener = listener
-    interactor.activate()
     return viewController
   }
 }

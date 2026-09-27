@@ -18,7 +18,6 @@ public final class PodcastBuilder: Builder<PodcastDependency>, PodcastBuildable 
     let router = PodcastRouter(dependency: dependency, viewController: viewController)
     interactor.router = router
     interactor.listener = listener
-    interactor.activate()
     return viewController
   }
 }

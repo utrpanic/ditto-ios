@@ -11,7 +11,12 @@ final class PlayerViewController: UIHostingController<StateReader<PlayerState, P
     super.init(rootView: StateReader(store: interactor.store) { state in
       PlayerView(state: state, sendAction: interactor.sendAction)
     })
+  }
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
     view.backgroundColor = .clear
+    interactor.sendAction(.viewDidLoad)
   }
 
   @available(*, unavailable)
