@@ -18,26 +18,26 @@ protocol DeepLinkDependency {
 @MainActor
 final class DeepLinkRouter {
   private let dependency: DeepLinkDependency
-  private let mainRouter: MainRouting
+  private let mainNavigation: MainNavigation
 
   init(
     dependency: DeepLinkDependency,
-    mainRouter: MainRouting
+    mainNavigation: MainNavigation
   ) {
     self.dependency = dependency
-    self.mainRouter = mainRouter
+    self.mainNavigation = mainNavigation
   }
 
   func route(to deepLink: DeepLink) {
     switch deepLink {
     case let .main(tab):
-      mainRouter.routeToMain(tab: tab)
+      mainNavigation.selectTab(tab)
     case let .podcast(podcast):
       let viewController = dependency.podcastBuilder.build(podcast: podcast, listener: nil)
-      mainRouter.push(viewController)
+      mainNavigation.push(viewController)
     case let .episode(episode):
       let viewController = dependency.episodeBuilder.build(episode: episode, listener: nil)
-      mainRouter.push(viewController)
+      mainNavigation.push(viewController)
     }
   }
 }

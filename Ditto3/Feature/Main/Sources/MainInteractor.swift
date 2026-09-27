@@ -11,13 +11,13 @@ enum MainAction {
 }
 
 @MainActor
-protocol MainInteractable: AnyObject, DiscoverListener, LatestListener, LibraryListener, PlayerListener, SearchListener {
+protocol MainInteractable: AnyObject {
   var store: StateStore<MainState> { get }
   func sendAction(_ action: MainAction)
 }
 
 @MainActor
-final class MainInteractor: Interactor, MainInteractable {
+final class MainInteractor: Interactor, MainInteractable, DiscoverListener, LatestListener, LibraryListener, PlayerListener, SearchListener {
   let store: StateStore<MainState>
   var router: MainRouting?
   weak var listener: MainListener?
@@ -28,7 +28,13 @@ final class MainInteractor: Interactor, MainInteractable {
   }
 
   override func didBecomeActive() {
-    router?.routeToMain(tab: .discover)
+    guard let router else { return }
+    router.attachDiscoverTab(listener: self)
+    router.attachLatestTab(listener: self)
+    router.attachLibraryTab(listener: self)
+    router.attachSearchTab(listener: self)
+    router.attachPlayer(listener: self)
+    router.selectTab(.discover)
   }
 
   func playerDidRequestEpisode(_ episode: Episode) {

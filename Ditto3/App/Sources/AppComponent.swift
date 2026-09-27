@@ -60,7 +60,7 @@ final class AppComponent: @MainActor Dependencies {
   }
 
   @MainActor
-  func makeRoot() -> (ViewControllable, MainRouting) {
+  func makeRoot() -> (ViewControllable, MainNavigation) {
     mainBuilder.build(listener: nil)
   }
 }

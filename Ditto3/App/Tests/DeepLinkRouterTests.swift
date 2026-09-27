@@ -24,7 +24,7 @@ struct DeepLinkRouterTests {
         podcastBuilder: podcastBuilder,
         episodeBuilder: episodeBuilder
       ),
-      mainRouter: mainRouter
+      mainNavigation: mainRouter
     )
     self.mainRouter = mainRouter
     self.podcastBuilder = podcastBuilder

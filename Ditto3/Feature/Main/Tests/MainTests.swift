@@ -14,6 +14,107 @@ import UIKit
 struct MainTests {
   @MainActor
   @Test
+  func builderActivatesAfterConnectingDependencies() {
+    let playerBuilder = PlayerBuildableSpy(viewController: UIViewController())
+    let builder = MainBuilder(dependency: MainDependencyStub(playerBuilder: playerBuilder))
+    let (result, _) = builder.build(listener: nil)
+    let viewController = result.ui
+
+    #expect(playerBuilder.buildCallCount == 1)
+    viewController.loadViewIfNeeded()
+    viewController.loadViewIfNeeded()
+    #expect((viewController as? MainViewController)?.tabs.count == 4)
+    #expect(playerBuilder.buildCallCount == 1)
+  }
+
+  @MainActor
+  @Test
+  func activationConfiguresChildrenAfterRouterConnection() {
+    let playerBuilder = PlayerBuildableSpy(viewController: UIViewController())
+    let interactor = MainInteractor()
+    let viewController = MainViewController(interactor: interactor)
+    let router = MainRouter(
+      dependency: MainDependencyStub(playerBuilder: playerBuilder),
+      viewController: viewController
+    )
+    interactor.router = router
+    viewController.loadViewIfNeeded()
+    #expect(playerBuilder.buildCallCount == 0)
+
+    interactor.activate()
+
+    #expect(viewController.tabs.count == 4)
+    #expect(playerBuilder.listener === interactor)
+    router.selectTab(.search)
+    viewController.loadViewIfNeeded()
+    #expect(viewController.selectedTab === viewController.tabs[3])
+    #expect(playerBuilder.buildCallCount == 1)
+  }
+
+  @MainActor
+  @Test
+  func selectingTabDoesNotCreateChildren() {
+    let playerBuilder = PlayerBuildableSpy(viewController: UIViewController())
+    let interactor = MainInteractor()
+    let viewController = MainViewController(interactor: interactor)
+    viewController.loadViewIfNeeded()
+    let router = MainRouter(
+      dependency: MainDependencyStub(playerBuilder: playerBuilder),
+      viewController: viewController
+    )
+
+    router.selectTab(.latest)
+
+    #expect(viewController.tabs.isEmpty)
+    #expect(playerBuilder.buildCallCount == 0)
+    #expect(interactor.store.state.selectedTab == .latest)
+  }
+
+  @MainActor
+  @Test
+  func externalNavigationWorksAfterInitialConfiguration() throws {
+    let playerBuilder = PlayerBuildableSpy(viewController: UIViewController())
+    let builder = MainBuilder(dependency: MainDependencyStub(playerBuilder: playerBuilder))
+    let (result, navigation) = builder.build(listener: nil)
+    let viewController = try #require(result.ui as? MainViewController)
+    viewController.loadViewIfNeeded()
+    let destination = UIViewController()
+
+    navigation.selectTab(.search)
+    navigation.push(destination)
+
+    #expect(viewController.selectedTab === viewController.tabs[3])
+    #expect((viewController.selectedViewController as? UINavigationController)?.topViewController === destination)
+    #expect(playerBuilder.buildCallCount == 1)
+  }
+
+  @MainActor
+  @Test
+  func retainedRouterDoesNotKeepChildrenAliveAfterMainRelease() {
+    var router: MainRouter?
+    weak var discoverViewController: UIViewController?
+    weak var playerViewController: UIViewController?
+    autoreleasepool {
+      let interactor = MainInteractor()
+      let viewController = MainViewController(interactor: interactor)
+      router = MainRouter(dependency: MainDependencyStub(), viewController: viewController)
+      interactor.router = router
+      interactor.activate()
+      viewController.loadViewIfNeeded()
+      discoverViewController = (viewController.selectedViewController as? UINavigationController)?.viewControllers.first
+      playerViewController = viewController.children.first { $0 is PlayerViewControllerStub }
+      #expect(discoverViewController != nil)
+      #expect(playerViewController != nil)
+    }
+
+    #expect(router != nil)
+    #expect(router?.viewController == nil)
+    #expect(discoverViewController == nil)
+    #expect(playerViewController == nil)
+  }
+
+  @MainActor
+  @Test
   func stateChangesSynchronouslyUpdateSelectedTab() {
     let interactor = MainInteractor()
     let viewController = MainViewController(interactor: interactor)
@@ -36,16 +137,18 @@ struct MainTests {
   @MainActor
   @Test
   func stateSubscriptionDoesNotRetainMainViewControllerOrInteractor() {
-    var interactor: MainInteractor? = MainInteractor()
-    var viewController: MainViewController? = MainViewController(interactor: interactor!)
-    let store = interactor!.store
-    weak let weakViewController = viewController
-    weak let weakInteractor = interactor
-    viewController?.loadViewIfNeeded()
-    store.state.selectedTab = .latest
+    weak var weakViewController: MainViewController?
+    weak var weakInteractor: MainInteractor?
+    let store = autoreleasepool {
+      let interactor = MainInteractor()
+      let viewController = MainViewController(interactor: interactor)
+      weakViewController = viewController
+      weakInteractor = interactor
+      viewController.loadViewIfNeeded()
+      interactor.store.state.selectedTab = .latest
+      return interactor.store
+    }
 
-    viewController = nil
-    interactor = nil
     #expect(weakViewController == nil)
     #expect(weakInteractor == nil)
     store.state.selectedTab = .search
@@ -62,7 +165,7 @@ struct MainTests {
 
   @MainActor
   @Test
-  func routeToMainAttachesChildrenOnlyOnce() {
+  func initialConfigurationAttachesChildrenOnlyOnce() {
     let playerViewController = PlayerViewControllerStub()
     let playerBuilder = PlayerBuildableSpy(viewController: playerViewController)
     let dependency = MainDependencyStub(playerBuilder: playerBuilder)
@@ -70,15 +173,18 @@ struct MainTests {
     let mainViewController = MainViewController(interactor: interactor)
     let router = MainRouter(
       dependency: dependency,
-      interactor: interactor,
       viewController: mainViewController
     )
+    interactor.router = router
+    interactor.activate()
     mainViewController.loadViewIfNeeded()
 
-    router.routeToMain(tab: .discover)
-    router.routeToMain(tab: .latest)
+    router.selectTab(.latest)
+    mainViewController.loadViewIfNeeded()
+    router.attachPlayer(listener: MainInteractor())
 
     #expect(playerBuilder.buildCallCount == 1)
+    #expect(playerBuilder.listener === interactor)
     #expect(mainViewController.tabs.count == 4)
     #expect(interactor.store.state.selectedTab == .latest)
     #expect(playerViewController.parent === mainViewController)
@@ -101,15 +207,16 @@ struct MainTests {
     var viewController: MainViewController? = MainViewController(interactor: interactor)
     let router = MainRouter(
       dependency: dependency,
-      interactor: interactor,
       viewController: viewController!
     )
     viewController = nil
 
-    router.routeToMain(tab: .discover)
+    router.attachPlayer(listener: interactor)
+    router.selectTab(.discover)
     router.push(UIViewController())
 
     #expect(router.viewController == nil)
+    #expect(playerBuilder.buildCallCount == 0)
   }
 
   @MainActor
@@ -146,12 +253,12 @@ struct MainTests {
     let viewController = MainViewController(interactor: interactor)
     let router = MainRouter(
       dependency: dependency,
-      interactor: interactor,
       viewController: viewController
     )
     interactor.router = router
+    interactor.activate()
     viewController.loadViewIfNeeded()
-    router.routeToMain(tab: .latest)
+    router.selectTab(.latest)
 
     playerBuilder.listener?.playerDidRequestEpisode(episode)
 

@@ -13,11 +13,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     self.window = UIWindow(windowScene: windowScene)
     let appComponent = AppComponent()
     self.appComponent = appComponent
-    let (viewController, mainRouter) = appComponent.makeRoot()
+    let (viewController, mainNavigation) = appComponent.makeRoot()
     self.window?.rootViewController = viewController.ui
     self.deepLinkRouter = DeepLinkRouter(
       dependency: appComponent,
-      mainRouter: mainRouter
+      mainNavigation: mainNavigation
     )
     self.window?.makeKeyAndVisible()
   }

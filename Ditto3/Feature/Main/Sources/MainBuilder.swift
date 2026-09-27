@@ -16,12 +16,11 @@ public protocol MainDependency {
 }
 
 public final class MainBuilder: Builder<MainDependency>, MainBuildable {
-  public func build(listener: MainListener?) -> (ViewControllable, MainRouting) {
+  public func build(listener: MainListener?) -> (ViewControllable, MainNavigation) {
     let interactor = MainInteractor()
     let viewController = MainViewController(interactor: interactor)
     let router = MainRouter(
       dependency: dependency,
-      interactor: interactor,
       viewController: viewController
     )
     interactor.router = router
