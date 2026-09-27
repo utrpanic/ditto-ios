@@ -11,7 +11,7 @@ protocol LatestRouting: Routing {
 }
 
 @MainActor
-final class LatestRouter: Router<ViewControllable>, LatestRouting {
+final class LatestRouter: Router<LatestControllable>, LatestRouting {
   private let episodeBuilder: EpisodeBuildable
 
   init(dependency: LatestDependency, viewController: LatestControllable) {

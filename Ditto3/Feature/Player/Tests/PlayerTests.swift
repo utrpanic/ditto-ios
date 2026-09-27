@@ -21,65 +21,65 @@ struct PlayerTests {
     let interactor = try #require(viewController.interactor as? PlayerInteractor)
     #expect(interactor.listener === listener)
     #expect(interactor.router != nil)
+    #expect(listener.visibility == [false])
   }
 
   @MainActor
   @Test
-  func playbackChangesUpdatePlayerAndRevealMiniPlayer() async {
+  func playbackChangesNotifyListenerWithoutAViewController() async {
     let playbackController = PlaybackControllerSpy()
     let interactor = PlayerInteractor(dependency: Dependency(playbackController: playbackController))
-    let viewController = PlayerViewController(interactor: interactor)
-    viewController.loadViewIfNeeded()
-    var isVisible: Bool?
-    viewController.observeVisibility { isVisible = $0 }
+    let listener = Listener()
+    interactor.listener = listener
     interactor.activate()
-    #expect(isVisible == false)
+    #expect(listener.visibility == [false])
     await waitUntil { playbackController.streamCallCount == 1 }
 
-    let playbackState = PlaybackState.playing(makeSession())
-    playbackController.emit(playbackState)
-    await waitUntil { interactor.store.state.playback == playbackState }
-
-    #expect(interactor.store.state.playback == playbackState)
-    #expect(isVisible == true)
-  }
-
-  @MainActor
-  @Test
-  func visibilityUpdatesSynchronouslyWithoutAParentViewController() {
-    let interactor = PlayerInteractor(dependency: Dependency())
-    let viewController = PlayerViewController(interactor: interactor)
-    var visibility: [Bool] = []
-    viewController.observeVisibility { visibility.append($0) }
-    #expect(visibility == [false])
-
-    interactor.store.state.playback = .playing(makeSession())
-    #expect(visibility == [false, true])
-
-    interactor.store.state.playback = .idle
-    #expect(visibility == [false, true, false])
-
-    interactor.store.state.playback = .paused(makeSession())
-    #expect(visibility == [false, true, false, true])
-    #expect(viewController.parent == nil)
-  }
-
-  @MainActor
-  @Test
-  func visibilityCallbackCanSendActionUsingCommittedPlaybackState() {
-    let interactor = PlayerInteractor(dependency: Dependency())
-    let viewController = PlayerViewController(interactor: interactor)
-    let playback = PlaybackState.playing(makeSession())
-    var didSendAction = false
-    viewController.observeVisibility { isVisible in
-      guard isVisible, !didSendAction else { return }
+    for playback in [PlaybackState.playing(makeSession()), .paused(makeSession()), .idle] {
+      playbackController.emit(playback)
+      await waitUntil { interactor.store.state.playback == playback }
       #expect(interactor.store.state.playback == playback)
-      didSendAction = true
-      // presentExpanded reads the session before changing another field of the same state.
-      interactor.sendAction(.presentExpanded)
     }
 
-    interactor.store.state.playback = playback
+    #expect(listener.visibility == [false, true, false])
+  }
+
+  @MainActor
+  @Test
+  func existingPlaybackNotifiesListenerOnActivation() async {
+    let playback = PlaybackState.paused(makeSession())
+    let playbackController = PlaybackControllerSpy(initialState: playback)
+    let interactor = PlayerInteractor(dependency: Dependency(playbackController: playbackController))
+    let listener = Listener()
+    interactor.listener = listener
+
+    interactor.activate()
+    await waitUntil { listener.visibility.last == true }
+
+    #expect(interactor.store.state.playback == playback)
+    #expect(listener.visibility == [false, true])
+  }
+
+  @MainActor
+  @Test
+  func visibilityListenerCanSendActionUsingCommittedPlaybackState() async {
+    let playbackController = PlaybackControllerSpy()
+    let interactor = PlayerInteractor(dependency: Dependency(playbackController: playbackController))
+    let listener = Listener()
+    let playback = PlaybackState.playing(makeSession())
+    var didSendAction = false
+    listener.onVisibilityChange = { [weak interactor] isVisible in
+      guard isVisible, !didSendAction, let interactor else { return }
+      #expect(interactor.store.state.playback == playback)
+      didSendAction = true
+      interactor.sendAction(.presentExpanded)
+    }
+    interactor.listener = listener
+    interactor.activate()
+    await waitUntil { playbackController.streamCallCount == 1 }
+
+    playbackController.emit(playback)
+    await waitUntil { didSendAction }
 
     #expect(didSendAction)
     #expect(interactor.store.state.isExpanded)
@@ -705,7 +705,15 @@ private actor PlaybackQueueRepositorySpy: PlaybackQueueRepository {
 }
 
 @MainActor
-private final class Listener: PlayerListener {}
+private final class Listener: PlayerListener {
+  private(set) var visibility: [Bool] = []
+  var onVisibilityChange: ((Bool) -> Void)?
+
+  func playerVisibilityDidChange(_ isVisible: Bool) {
+    visibility.append(isVisible)
+    onVisibilityChange?(isVisible)
+  }
+}
 
 @MainActor
 private final class RouterSpy: PlayerRouting {
@@ -739,6 +747,4 @@ private final class EpisodeBuilderSpy: EpisodeBuildable {
 }
 
 @MainActor
-private final class PlayerViewControllerStub: UIViewController, PlayerViewControllable {
-  func observeVisibility(_ observer: @escaping (Bool) -> Void) {}
-}
+private final class PlayerViewControllerStub: UIViewController, PlayerViewControllable {}

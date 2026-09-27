@@ -57,6 +57,7 @@ final class PlayerInteractor: Interactor, PlayerInteractable {
   }
 
   override func didBecomeActive() {
+    listener?.playerVisibilityDidChange(store.state.session != nil)
     playbackObservationTask?.cancel()
     let playbackController = playbackController
     let playbackSessionRepository = playbackSessionRepository
@@ -67,9 +68,14 @@ final class PlayerInteractor: Interactor, PlayerInteractable {
       let changes = playbackController.stateChanges()
       for await playback in changes {
         guard !Task.isCancelled, let self, let store else { return }
+        let wasVisible = store.state.session != nil
         store.state.playback = playback
         if store.state.session == nil {
           store.state.isExpanded = false
+        }
+        let isVisible = store.state.session != nil
+        if isVisible != wasVisible {
+          listener?.playerVisibilityDidChange(isVisible)
         }
         await persist(playback)
       }

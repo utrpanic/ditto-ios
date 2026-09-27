@@ -11,7 +11,7 @@ protocol LibraryRouting: Routing {
 }
 
 @MainActor
-final class LibraryRouter: Router<ViewControllable>, LibraryRouting {
+final class LibraryRouter: Router<LibraryControllable>, LibraryRouting {
   private let podcastBuilder: PodcastBuildable
 
   init(dependency: LibraryDependency, viewController: LibraryControllable) {

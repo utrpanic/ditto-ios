@@ -4,12 +4,15 @@ import RIBsLite
 import UIKit
 
 @MainActor
+protocol PlayerViewControllable: ViewControllable {}
+
+@MainActor
 protocol PlayerRouting: Routing {
   func routeToEpisode(_ episode: Entity.Episode)
 }
 
 @MainActor
-final class PlayerRouter: Router<ViewControllable>, PlayerRouting {
+final class PlayerRouter: Router<PlayerViewControllable>, PlayerRouting {
   private let episodeBuilder: EpisodeBuildable
 
   init(dependency: PlayerDependency, viewController: PlayerViewControllable) {

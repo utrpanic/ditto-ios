@@ -11,7 +11,7 @@ protocol DiscoverRouting: Routing {
 }
 
 @MainActor
-final class DiscoverRouter: Router<ViewControllable>, DiscoverRouting {
+final class DiscoverRouter: Router<DiscoverControllable>, DiscoverRouting {
   private let podcastBuilder: PodcastBuildable
 
   init(dependency: DiscoverDependency, viewController: DiscoverControllable) {

@@ -7,4 +7,5 @@ enum MainTab: Equatable {
 
 struct MainState: Equatable {
   var selectedTab: MainTab = .discover
+  var isPlayerVisible = false
 }

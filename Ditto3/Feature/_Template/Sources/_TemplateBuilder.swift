@@ -1,6 +1,6 @@
+import RIBsLite
 import Repository
 import SwiftUI
-import UIKit
 
 // Repository + Child Buildable
 public protocol _TemplateDependency: Sendable {
@@ -15,7 +15,7 @@ public final class _TemplateBuilder: _TemplateBuildable {
   }
 
   @MainActor
-  public func build(listener: _TemplateListener?) -> UIViewController {
+  public func build(listener: _TemplateListener?) -> ViewControllable {
     let interactor = _TemplateInteractor(dependency: dependency)
     let viewController = _TemplateViewController(interactor: interactor)
     interactor.presenter = viewController

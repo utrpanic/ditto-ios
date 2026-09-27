@@ -1,7 +1,7 @@
-import UIKit
+import RIBsLite
 
 public protocol _TemplateBuildable {
-  @MainActor func build(listener: _TemplateListener?) -> UIViewController
+  @MainActor func build(listener: _TemplateListener?) -> ViewControllable
 }
 
 @MainActor

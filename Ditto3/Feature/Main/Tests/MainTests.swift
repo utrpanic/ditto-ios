@@ -83,9 +83,28 @@ struct MainTests {
     #expect(playerViewController.parent === mainViewController)
     #expect(mainViewController.bottomAccessory == nil)
 
-    playerViewController.setVisible(true)
+    playerBuilder.listener?.playerVisibilityDidChange(true)
 
     #expect(mainViewController.bottomAccessory?.contentView === playerViewController.view)
+
+    playerBuilder.listener?.playerVisibilityDidChange(false)
+    #expect(mainViewController.bottomAccessory == nil)
+  }
+
+  @MainActor
+  @Test
+  func playerVisibilityReceivedBeforeAttachmentIsApplied() {
+    let interactor = MainInteractor()
+    interactor.playerVisibilityDidChange(true)
+    let viewController = MainViewController(interactor: interactor)
+    let playerViewController = UIViewController()
+    viewController.loadViewIfNeeded()
+
+    viewController.attachPlayer(playerViewController)
+
+    #expect(viewController.bottomAccessory?.contentView === playerViewController.view)
+    interactor.playerVisibilityDidChange(false)
+    #expect(viewController.bottomAccessory == nil)
   }
 
   @MainActor
@@ -152,36 +171,27 @@ private struct SearchBuildableStub: SearchBuildable {
 
 private struct PlayerBuildableStub: PlayerBuildable {
   @MainActor
-  func build(listener: PlayerListener?) -> PlayerViewControllable {
+  func build(listener: PlayerListener?) -> ViewControllable {
     PlayerViewControllerStub()
   }
 }
 
 @MainActor
 private final class PlayerBuildableSpy: PlayerBuildable {
-  private let viewController: PlayerViewControllable
+  private let viewController: ViewControllable
   private(set) var buildCallCount = 0
+  private(set) weak var listener: PlayerListener?
 
-  init(viewController: PlayerViewControllable) {
+  init(viewController: ViewControllable) {
     self.viewController = viewController
   }
 
-  func build(listener: PlayerListener?) -> PlayerViewControllable {
+  func build(listener: PlayerListener?) -> ViewControllable {
     buildCallCount += 1
+    self.listener = listener
     return viewController
   }
 }
 
 @MainActor
-private final class PlayerViewControllerStub: UIViewController, PlayerViewControllable {
-  private var visibilityObserver: ((Bool) -> Void)?
-
-  func observeVisibility(_ observer: @escaping (Bool) -> Void) {
-    visibilityObserver = observer
-    observer(false)
-  }
-
-  func setVisible(_ isVisible: Bool) {
-    visibilityObserver?(isVisible)
-  }
-}
+private final class PlayerViewControllerStub: UIViewController {}

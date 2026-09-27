@@ -30,6 +30,10 @@ final class MainInteractor: Interactor, MainInteractable {
     router?.routeToMain(tab: .discover)
   }
 
+  func playerVisibilityDidChange(_ isVisible: Bool) {
+    store.state.isPlayerVisible = isVisible
+  }
+
   func sendAction(_ action: MainAction) {
     switch action {
     case let .selectTab(tab):

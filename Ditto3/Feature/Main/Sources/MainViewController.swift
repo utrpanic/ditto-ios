@@ -1,5 +1,4 @@
 import Combine
-import Player
 import RIBsLite
 import UIKit
 
@@ -50,6 +49,7 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
 
   private func render(state: MainState) {
     renderSelectedTab(state.selectedTab)
+    renderPlayerVisibility(state.isPlayerVisible)
   }
 
   private func renderSelectedTab(_ tab: MainTab) {
@@ -112,18 +112,17 @@ final class MainViewController: UITabBarController, MainViewControllable, UITabB
     appendTab(tab)
   }
 
-  func attachPlayer(_ viewController: PlayerViewControllable) {
-    let playerUI = viewController.ui
-    addChild(playerUI)
-    let accessory = UITabAccessory(contentView: playerUI.view)
-    playerAccessory = accessory
-    playerUI.didMove(toParent: self)
+  func attachPlayer(_ viewController: ViewControllable) {
+    addChild(viewController.ui)
+    playerAccessory = UITabAccessory(contentView: viewController.ui.view)
+    viewController.ui.didMove(toParent: self)
+    renderPlayerVisibility(interactor.store.state.isPlayerVisible)
+  }
 
-    viewController.observeVisibility { [weak self] isVisible in
-      guard let self else { return }
-      guard isVisible != (bottomAccessory != nil) else { return }
-      setBottomAccessory(isVisible ? accessory : nil, animated: view.window != nil)
-    }
+  private func renderPlayerVisibility(_ isVisible: Bool) {
+    guard let playerAccessory else { return }
+    guard isVisible != (bottomAccessory != nil) else { return }
+    setBottomAccessory(isVisible ? playerAccessory : nil, animated: view.window != nil)
   }
 
   func selectTab(_ tab: MainTabDestination) {

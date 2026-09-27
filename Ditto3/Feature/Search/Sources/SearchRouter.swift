@@ -13,7 +13,7 @@ protocol SearchRouting: Routing {
 }
 
 @MainActor
-final class SearchRouter: Router<ViewControllable>, SearchRouting {
+final class SearchRouter: Router<SearchControllable>, SearchRouting {
   private let podcastBuilder: PodcastBuildable
   private let episodeBuilder: EpisodeBuildable
 
