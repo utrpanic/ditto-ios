@@ -29,7 +29,7 @@ struct LibraryTests {
     let repository = FollowingRepositorySpy(followedPodcasts: [followedPodcast])
     let interactor = LibraryInteractor(dependency: Dependency(followingRepository: repository))
 
-    interactor.sendAction(.viewDidLoad)
+    interactor.activate()
     await waitUntil {
       interactor.store.state == .loaded([followedPodcast])
     }
@@ -43,7 +43,7 @@ struct LibraryTests {
     let repository = FollowingRepositorySpy()
     let interactor = LibraryInteractor(dependency: Dependency(followingRepository: repository))
     let podcast = makePodcast()
-    interactor.sendAction(.viewDidLoad)
+    interactor.activate()
     await waitUntil { interactor.store.state == .loaded([]) }
 
     await repository.follow(podcast)
@@ -68,7 +68,7 @@ struct LibraryTests {
     )
     weak let weakInteractor = interactor
 
-    interactor?.sendAction(.viewDidLoad)
+    interactor?.activate()
     await waitUntil { await repository.observationCounts().started == 1 }
     interactor = nil
 

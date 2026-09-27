@@ -15,6 +15,7 @@ public final class LibraryBuilder: Builder<LibraryDependency>, LibraryBuildable 
     let router = LibraryRouter(dependency: dependency, viewController: viewController)
     interactor.router = router
     interactor.listener = listener
+    interactor.activate()
     return viewController
   }
 }

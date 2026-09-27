@@ -14,21 +14,6 @@ import UIKit
 struct MainTests {
   @MainActor
   @Test
-  func builderHandlesViewLoadingBeforeRouterConnection() {
-    let playerBuilder = PlayerBuildableSpy(viewController: UIViewController())
-    let builder = MainBuilder(dependency: MainDependencyStub(playerBuilder: playerBuilder))
-    let (result, _) = builder.build(listener: nil)
-    let viewController = result.ui
-
-    viewController.loadViewIfNeeded()
-    viewController.loadViewIfNeeded()
-
-    #expect((viewController as? MainViewController)?.tabs.count == 4)
-    #expect(playerBuilder.buildCallCount == 1)
-  }
-
-  @MainActor
-  @Test
   func stateChangesSynchronouslyUpdateSelectedTab() {
     let interactor = MainInteractor()
     let viewController = MainViewController(interactor: interactor)

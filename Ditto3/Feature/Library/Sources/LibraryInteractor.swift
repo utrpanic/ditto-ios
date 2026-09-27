@@ -3,7 +3,6 @@ import Repository
 import RIBsLite
 
 enum LibraryAction {
-  case viewDidLoad
   case retry
   case selectPodcast(Podcast)
 }
@@ -32,10 +31,12 @@ final class LibraryInteractor: Interactor, LibraryInteractable {
     observationTask?.cancel()
   }
 
+  override func didBecomeActive() {
+    observeFollowing()
+  }
+
   func sendAction(_ action: LibraryAction) {
     switch action {
-    case .viewDidLoad:
-      observeFollowing()
     case .retry:
       observeFollowing()
     case .selectPodcast(let podcast):

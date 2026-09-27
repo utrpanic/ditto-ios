@@ -14,6 +14,7 @@ public final class DiscoverBuilder: DiscoverBuildable {
     let router = DiscoverRouter(dependency: dependency, viewController: viewController)
     interactor.router = router
     interactor.listener = listener
+    interactor.activate()
     return viewController
   }
 }

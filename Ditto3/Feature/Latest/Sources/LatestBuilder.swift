@@ -17,6 +17,7 @@ public final class LatestBuilder: Builder<LatestDependency>, LatestBuildable {
     let router = LatestRouter(dependency: dependency, viewController: viewController)
     interactor.router = router
     interactor.listener = listener
+    interactor.activate()
     return viewController
   }
 }

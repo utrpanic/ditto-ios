@@ -62,7 +62,7 @@ struct PodcastTests {
     let dependency = Dependency(followingRepository: followingRepository)
     let interactor = PodcastInteractor(podcast: podcast, dependency: dependency)
 
-    interactor.sendAction(.viewDidLoad)
+    interactor.activate()
     await waitUntil { interactor.store.state.isFollowing == true }
 
     #expect(interactor.store.state.isFollowing == true)
@@ -75,7 +75,7 @@ struct PodcastTests {
     let followingRepository = FollowingRepositorySpy()
     let dependency = Dependency(followingRepository: followingRepository)
     let interactor = PodcastInteractor(podcast: podcast, dependency: dependency)
-    interactor.sendAction(.viewDidLoad)
+    interactor.activate()
     await waitUntil { interactor.store.state.isFollowing == false }
 
     interactor.sendAction(.toggleFollowing)
@@ -93,7 +93,7 @@ struct PodcastTests {
     let followingRepository = FollowingRepositorySpy(shouldFailMutation: true)
     let dependency = Dependency(followingRepository: followingRepository)
     let interactor = PodcastInteractor(podcast: podcast, dependency: dependency)
-    interactor.sendAction(.viewDidLoad)
+    interactor.activate()
     await waitUntil { interactor.store.state.isFollowing == false }
 
     interactor.sendAction(.toggleFollowing)
@@ -111,8 +111,8 @@ struct PodcastTests {
     let dependency = Dependency(followingRepository: followingRepository)
     let firstInteractor = PodcastInteractor(podcast: podcast, dependency: dependency)
     let secondInteractor = PodcastInteractor(podcast: podcast, dependency: dependency)
-    firstInteractor.sendAction(.viewDidLoad)
-    secondInteractor.sendAction(.viewDidLoad)
+    firstInteractor.activate()
+    secondInteractor.activate()
     await waitUntil {
       firstInteractor.store.state.isFollowing == false
         && secondInteractor.store.state.isFollowing == false

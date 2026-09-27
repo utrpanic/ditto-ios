@@ -24,6 +24,7 @@ public final class SearchBuilder: SearchBuildable {
     let router = SearchRouter(dependency: dependency, viewController: viewController)
     interactor.router = router
     interactor.listener = listener
+    interactor.activate()
     return viewController
   }
 }

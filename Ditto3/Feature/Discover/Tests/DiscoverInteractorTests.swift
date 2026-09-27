@@ -23,6 +23,22 @@ struct DiscoverInteractorTests {
 
   @MainActor
   @Test
+  func releasedSourceDoesNotBuildDestination() {
+    let podcastBuilder = PodcastBuilderSpy(destination: UIViewController())
+    let dependency = Dependency(podcastBuilder: podcastBuilder)
+    let router = autoreleasepool {
+      let viewController = DiscoverViewControllerStub()
+      return DiscoverRouter(dependency: dependency, viewController: viewController)
+    }
+
+    #expect(router.viewController == nil)
+    router.routeToPodcast(makePodcast())
+
+    #expect(podcastBuilder.builtPodcast == nil)
+  }
+
+  @MainActor
+  @Test
   func routerBuildsAndPushesSelectedPodcast() {
     let podcast = makePodcast()
     let destination = UIViewController()

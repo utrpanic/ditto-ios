@@ -5,7 +5,6 @@ import RIBsLite
 import UIKit
 
 enum LatestAction {
-  case viewDidLoad
   case refresh
   case selectEpisode(Episode)
 }
@@ -37,11 +36,13 @@ final class LatestInteractor: Interactor, LatestInteractable {
     foregroundObservationTask?.cancel()
   }
 
+  override func didBecomeActive() {
+    observeFollowing()
+    observeForegroundEntry()
+  }
+
   func sendAction(_ action: LatestAction) {
     switch action {
-    case .viewDidLoad:
-      observeFollowing()
-      observeForegroundEntry()
     case .refresh:
       reload()
     case .selectEpisode(let episode):

@@ -20,7 +20,8 @@ final class LatestRouter: Router<LatestControllable>, LatestRouting {
   }
 
   func routeToEpisode(_ episode: Entity.Episode) {
+    guard let viewController else { return }
     let episodeViewController = episodeBuilder.build(episode: episode, listener: nil)
-    viewController?.push(episodeViewController, animated: true)
+    viewController.push(episodeViewController, animated: true)
   }
 }

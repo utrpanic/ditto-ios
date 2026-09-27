@@ -4,7 +4,6 @@ import Repository
 import RIBsLite
 
 enum DiscoverAction {
-  case viewDidLoad
   case retry
   case selectPodcast(Podcast)
 }
@@ -35,13 +34,15 @@ final class DiscoverInteractor: Interactor, DiscoverInteractable {
     super.init()
   }
 
+  override func didBecomeActive() {
+    guard case .none = store.state else { return }
+    Task {
+      await fetchPodcasts()
+    }
+  }
+
   func sendAction(_ action: DiscoverAction) {
     switch action {
-    case .viewDidLoad:
-      guard case .none = store.state else { return }
-      Task {
-        await fetchPodcasts()
-      }
     case .retry:
       Task {
         await fetchPodcasts()
