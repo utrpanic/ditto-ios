@@ -2,7 +2,7 @@
 
 ## 1. Technical Objective
 
-Ditto3는 view-controller-centered RIB tree를 사용하는 RIBsLite architecture sample이다. 기술 목표는 Podcast app의 현실적인 화면 구성과 공유 상태를 구현하면서 다음을 검증하는 것이다.
+Ditto3는 RIBs의 개발 모델을 유지하면서 기능의 소유권과 수명을 UIKit VC tree에 맡기는 RIBsLite architecture sample이다. 기술 목표는 Podcast app의 현실적인 화면 구성과 공유 상태를 구현하면서 다음을 검증하는 것이다.
 
 1. Feature별 Builder, Interactor, Router, ViewController 경계
 2. UIKit VC tree와 SwiftUI view의 조합
@@ -75,31 +75,39 @@ Feature.Player
 -> AVFoundation / MediaPlayer system type
 ```
 
-## 4. RIBsLite Composition
+## 4. Ditto3 Feature Composition
+
+RIBsLite는 VC가 Interactor를 소유하고, Presentable·PresentableListener를 StateStore 관찰과 `sendAction`으로 대체한다. 이 소유권과 표현 계약 위에 Ditto3의 화면을 구성한다. SwiftUI 호스팅과 Composition Root는 샘플의 선택이다. AppComponent는 각 Feature의 Dependency를 직접 충족해 leaf 의존성 변경을 모든 ancestor가 전달하는 부담을 줄인다. 이 DI 방식은 RIBsLite의 필수 조건이 아니며, 객체의 공유 범위는 별도로 정한다.
 
 ### 4.1 VC Tree
 
 ```text
 MainViewController
 ├── Discover navigation controller
-│   └── PodcastViewController
-│       └── EpisodeViewController
+│   ├── DiscoverViewController
+│   ├── PodcastViewController
+│   └── EpisodeViewController
 ├── Latest navigation controller
+│   ├── LatestViewController
 │   └── EpisodeViewController
 ├── Library navigation controller
-│   └── PodcastViewController
-│       └── EpisodeViewController
+│   ├── LibraryViewController
+│   ├── PodcastViewController
+│   └── EpisodeViewController
 ├── Search navigation controller
+│   ├── SearchViewController
 │   ├── PodcastViewController
 │   └── EpisodeViewController
 └── PlayerViewController
-    ├── MiniPlayer presentation
-    └── Expanded Player / Queue presentation
 ```
 
-Main은 tab child와 Player child의 attach/detach 및 화면 배치를 담당한다. Player는 재생 session이 존재하는 동안 tab 전환과 navigation stack 변화에 관계없이 유지된다.
+각 navigation controller 아래는 해당 탭에서 push할 수 있는 화면의 예시다. Podcast와 Episode는 이동 경로상 이어져도 VC 소유 관계에서는 같은 navigation stack에 놓인다.
 
-### 4.2 SwiftUI Composition
+Main은 tab child와 Player child의 부착 및 화면 배치를 담당한다. Player는 세션 유무와 관계없이 Main에 상주하고, 세션에 따라 MiniPlayer 표시만 바뀐다. Expanded Player와 Queue는 Player 내부의 SwiftUI 표현이며 별도 Riblet이 아니다. Player의 동적 제거·교체는 지원하지 않는다.
+
+### 4.2 Presentation Contract and SwiftUI Composition
+
+Interactor는 VC나 Presenter를 직접 참조하지 않고 StateStore를 변경한다. Presentable의 표현 메서드는 상태 관찰로, PresentableListener의 입력 메서드는 `sendAction(Action)`으로 대체한다. 기능 간 통신을 위한 Listener는 유지한다. VC는 Interactor를 소유하고 상태와 입력 경로를 View에 연결하며, 상태 쓰기는 Interactor가 담당한다는 컨벤션을 따른다.
 
 - Feature의 ViewController는 `UIHostingController<StateReader<...>>` 패턴을 사용한다.
 - SwiftUI View는 state와 `sendAction` closure만 받는다.
@@ -124,9 +132,10 @@ Podcast와 Episode Builder는 진입한 parent feature와 무관하게 동일한
 - UIKit VC tree가 Feature ViewController의 수명을 소유한다.
 - ViewController는 Interactor를 강하게 소유하고, Interactor는 Router를 강하게 소유한다.
 - Router는 ViewController를 약하게 참조해 `ViewController -> Interactor -> Router -> ViewController` 순환 참조를 만들지 않는다.
-- ViewController가 해제되면 Interactor도 함께 해제되고, Interactor는 deinit에서 장기 stream observation만 취소한다.
+- 다른 강한 참조가 없다면 ViewController 해제와 함께 Interactor도 해제된다. 진행 중인 Task가 수명을 연장할 수 있으며, 장기 stream observation은 Interactor의 deinit에서 취소한다.
+- 별도 Router attach가 없으므로 각 VC 부착 경로에서 활성화를 처리하는 대신, Builder가 Router와 Listener 연결 후 `interactor.activate()`를 한 번 호출하도록 단순화한다. `build()`는 생성과 시작을 포함하고, `didBecomeActive()`의 초기 작업은 VC 부착이나 화면 표시 전에 시작할 수 있다.
 - 공통 deactivate lifecycle은 사용하지 않는다. UIKit state 구독은 weak callback으로 VC 수명을 연장하지 않으며 VC가 소유한 cancellable로 수명을 관리한다.
-- 일회성 조회, 저장, 재생 작업은 ViewController 수명과 결합하지 않는다. UI state 반영은 weak reference로 차단하되 시작된 작업 자체는 완료한다.
+- 일회성 조회, 저장, 재생 작업의 완료·취소와 상태 반영 정책은 각 Feature가 관리하며, VC 해제가 모든 작업의 즉시 종료를 보장하지는 않는다.
 
 ## 5. Feature Responsibilities
 
@@ -359,9 +368,10 @@ Podcast VC가 어느 entry point에서 생성됐는지에 관계없이 같은 �
 
 ```text
 User taps Play
--> source Interactor notifies/routes through its owning tree
--> persistent Player receives Episode
+-> EpisodeInteractor handles the action
 -> PlaybackControlling.play(episode)
+-> PlayerInteractor observes shared playback state
+-> PlayerListener reports visibility to MainInteractor
 -> Main reveals MiniPlayer
 ```
 
@@ -479,10 +489,12 @@ Each step should remain a focused commit and preserve a buildable project.
 
 Deep link navigation is split into route resolution and navigation execution. The current implementation covers navigation execution for an already resolved domain route; external URL parsing and entity resolution remain separate concerns.
 
+`DeepLinkRouter` and `MainNavigation` are Ditto3-specific application types, not part of RIBsLite's architecture contract. They implement this sample's deep-link navigation independently of a Router tree.
+
 ```text
 SceneDelegate.handleDeepLink(DeepLink)
 -> App.DeepLinkRouter
-   ├─ main(tab): route to Main and select the requested tab
+   ├─ main(tab): select the requested tab in the existing Main
    ├─ podcast(Podcast): build and push Podcast on the selected tab
    └─ episode(Episode): build and push Episode on the selected tab
 ```
@@ -491,7 +503,8 @@ SceneDelegate.handleDeepLink(DeepLink)
 - A Main destination changes only the selected tab and preserves each tab's stack.
 - Podcast and Episode destinations use the currently selected tab's navigation controller.
 - `DeepLinkRouter` belongs to the App composition layer and owns Podcast/Episode feature construction.
-- Main exposes only `MainRouting`, implemented by `MainRouter`. `routeToMain(tab:)` idempotently attaches the tab children and Player before selecting a tab; it can also push a view controller on the selected tab.
+- Main exposes `MainNavigation`, implemented by `MainRouter`, for tab selection and pushing a view controller on the selected tab. Internal `MainRouting` adds child attachment with per-call listeners and Episode routing. Tab selection does not initialize children.
+- `MainBuilder` creates and wires the objects, then calls `interactor.activate()` to configure children before returning. MainViewController subclasses UITabBarController; viewDidLoad handles UI setup and state binding only. SceneDelegate does not need to force view loading before connecting DeepLinkRouter. MainRouter does not retain an interactor, and its child view-controller references are weak. Routers guard their source view controller before building destinations to avoid starting features after the source has been released.
 - `DeepLinkRouter` receives Podcast and Episode builders through `DeepLinkDependency`, which `AppComponent` satisfies as the composition root.
 - Main and `MainInteractor` remain unaware of deep links and do not depend on Podcast/Episode solely for deep-link routing.
 - URL schemes, URL parameters, and the resolver that produces `Podcast` or `Episode` are not defined at this stage.

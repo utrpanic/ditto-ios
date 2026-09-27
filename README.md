@@ -19,6 +19,8 @@
 - Platform - Core - Feature
 - Implement Ditto2’s idea with Tuist.
 
+[RIBsLite 설계 의도와 명세](Ditto3/README.md#ribslite)
+
 ## DittoBlue
 
 - What if we implemented Ditto with SwiftUI?

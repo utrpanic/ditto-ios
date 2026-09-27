@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-Ditto3는 특정 시장성과 사용성 지표를 검증하기 위한 제품이 아니다. 일관된 podcast app 시나리오를 구현하면서 view-controller-centered RIB tree인 RIBsLite의 적용 범위와 한계를 확인하는 architecture sample이다.
+Ditto3는 특정 시장성과 사용성 지표를 검증하기 위한 제품이 아니다. 일관된 podcast app 시나리오를 구현하면서 기능의 소유권과 수명을 UIKit VC tree에 맡기는 RIBsLite의 적용 범위와 한계를 확인하는 architecture sample이다.
 
 제품 요구사항은 architecture를 검증할 만큼 현실적이어야 하지만, 계정·결제·추천처럼 architecture 실험에 불필요한 범위는 포함하지 않는다.
 
@@ -192,7 +192,7 @@ Ditto3의 성공 여부는 전환율이나 retention으로 판단하지 않는�
 
 - 위 user flow가 일관된 domain terminology로 동작한다.
 - Feature가 복수 진입점에서 재사용된다.
-- RIBsLite가 navigation, lifecycle, dependency composition을 명확히 표현한다.
+- RIBsLite의 navigation·lifecycle 규약과 Ditto3가 선택한 dependency composition의 책임이 명확하다.
 - 공유 domain state가 feature 간에 예측 가능하게 전달된다.
-- Player처럼 root에 지속되는 child VC를 RIB tree 안에서 표현할 수 있다.
+- Player처럼 root에 지속되는 기능을 UIKit child VC로 표현할 수 있다.
 - viewless Riblet 없이도 필요한 화면 구성을 유지할 수 있다.
