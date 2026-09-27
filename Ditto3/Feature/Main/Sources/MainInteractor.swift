@@ -1,4 +1,5 @@
 import Discover
+import Entity
 import Latest
 import Library
 import Player
@@ -28,6 +29,10 @@ final class MainInteractor: Interactor, MainInteractable {
 
   override func didBecomeActive() {
     router?.routeToMain(tab: .discover)
+  }
+
+  func playerDidRequestEpisode(_ episode: Episode) {
+    router?.routeToEpisode(episode)
   }
 
   func playerVisibilityDidChange(_ isVisible: Bool) {

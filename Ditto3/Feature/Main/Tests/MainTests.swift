@@ -1,5 +1,6 @@
 import Discover
 import Entity
+import Episode
 import Latest
 import Library
 import Player
@@ -93,6 +94,26 @@ struct MainTests {
 
   @MainActor
   @Test
+  func routingAfterViewControllerReleaseDoesNotCrash() {
+    let playerBuilder = PlayerBuildableSpy(viewController: UIViewController())
+    let dependency = MainDependencyStub(playerBuilder: playerBuilder)
+    let interactor = MainInteractor()
+    var viewController: MainViewController? = MainViewController(interactor: interactor)
+    let router = MainRouter(
+      dependency: dependency,
+      interactor: interactor,
+      viewController: viewController!
+    )
+    viewController = nil
+
+    router.routeToMain(tab: .discover)
+    router.push(UIViewController())
+
+    #expect(router.viewController == nil)
+  }
+
+  @MainActor
+  @Test
   func playerVisibilityReceivedBeforeAttachmentIsApplied() {
     let interactor = MainInteractor()
     interactor.playerVisibilityDidChange(true)
@@ -105,6 +126,39 @@ struct MainTests {
     #expect(viewController.bottomAccessory?.contentView === playerViewController.view)
     interactor.playerVisibilityDidChange(false)
     #expect(viewController.bottomAccessory == nil)
+  }
+
+  @MainActor
+  @Test
+  func playerEpisodeRequestPushesOnCurrentTab() {
+    let episode = Episode(
+      id: EpisodeID("next"),
+      podcastTitle: "Architecture Talks",
+      title: "Next episode",
+      feedURL: URL(string: "https://example.com/feed.xml")!,
+      audioURL: URL(string: "https://example.com/next.mp3")
+    )
+    let destination = UIViewController()
+    let episodeBuilder = EpisodeBuildableSpy(destination: destination)
+    let playerBuilder = PlayerBuildableSpy(viewController: UIViewController())
+    let dependency = MainDependencyStub(playerBuilder: playerBuilder, episodeBuilder: episodeBuilder)
+    let interactor = MainInteractor()
+    let viewController = MainViewController(interactor: interactor)
+    let router = MainRouter(
+      dependency: dependency,
+      interactor: interactor,
+      viewController: viewController
+    )
+    interactor.router = router
+    viewController.loadViewIfNeeded()
+    router.routeToMain(tab: .latest)
+
+    playerBuilder.listener?.playerDidRequestEpisode(episode)
+
+    let navigationController = viewController.selectedViewController as? UINavigationController
+    #expect(episodeBuilder.builtEpisode == episode)
+    #expect(viewController.selectedTab === viewController.tabs[1])
+    #expect(navigationController?.topViewController === destination)
   }
 
   @MainActor
@@ -129,6 +183,7 @@ struct MainTests {
 }
 
 private struct MainDependencyStub: MainDependency {
+  let episodeBuilder: EpisodeBuildable
   let discoverBuilder: DiscoverBuildable = DiscoverBuildableStub()
   let latestBuilder: LatestBuildable = LatestBuildableStub()
   let libraryBuilder: LibraryBuildable = LibraryBuildableStub()
@@ -136,7 +191,8 @@ private struct MainDependencyStub: MainDependency {
   let searchBuilder: SearchBuildable = SearchBuildableStub()
 
   @MainActor
-  init(playerBuilder: PlayerBuildable? = nil) {
+  init(playerBuilder: PlayerBuildable? = nil, episodeBuilder: EpisodeBuildable? = nil) {
+    self.episodeBuilder = episodeBuilder ?? EpisodeBuildableSpy(destination: UIViewController())
     self.playerBuilder = playerBuilder ?? PlayerBuildableStub()
   }
 }
@@ -195,3 +251,18 @@ private final class PlayerBuildableSpy: PlayerBuildable {
 
 @MainActor
 private final class PlayerViewControllerStub: UIViewController {}
+
+@MainActor
+private final class EpisodeBuildableSpy: EpisodeBuildable {
+  private let destination: ViewControllable
+  private(set) var builtEpisode: Episode?
+
+  init(destination: ViewControllable) {
+    self.destination = destination
+  }
+
+  func build(episode: Episode, listener: EpisodeListener?) -> ViewControllable {
+    builtEpisode = episode
+    return destination
+  }
+}

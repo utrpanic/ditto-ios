@@ -1,3 +1,4 @@
+import Entity
 import RIBsLite
 
 public enum MainTabDestination: Equatable, Sendable {
@@ -9,6 +10,7 @@ public enum MainTabDestination: Equatable, Sendable {
 
 @MainActor
 public protocol MainRouting: Routing {
+  func routeToEpisode(_ episode: Episode)
   func routeToMain(tab: MainTabDestination)
   func push(_ viewController: ViewControllable)
 }

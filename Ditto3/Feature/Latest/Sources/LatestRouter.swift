@@ -21,6 +21,6 @@ final class LatestRouter: Router<LatestControllable>, LatestRouting {
 
   func routeToEpisode(_ episode: Entity.Episode) {
     let episodeViewController = episodeBuilder.build(episode: episode, listener: nil)
-    viewController.push(episodeViewController, animated: true)
+    viewController?.push(episodeViewController, animated: true)
   }
 }

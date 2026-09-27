@@ -21,6 +21,6 @@ final class PodcastRouter: Router<PodcastControllable>, PodcastRouting {
 
   func routeToEpisode(_ episode: Episode) {
     let episodeViewController = episodeBuilder.build(episode: episode, listener: nil)
-    viewController.push(episodeViewController, animated: true)
+    viewController?.push(episodeViewController, animated: true)
   }
 }

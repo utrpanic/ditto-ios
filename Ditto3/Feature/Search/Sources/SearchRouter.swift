@@ -25,11 +25,11 @@ final class SearchRouter: Router<SearchControllable>, SearchRouting {
 
   func routeToPodcast(_ podcast: Podcast) {
     let podcastViewController = podcastBuilder.build(podcast: podcast, listener: nil)
-    viewController.push(podcastViewController, animated: true)
+    viewController?.push(podcastViewController, animated: true)
   }
 
   func routeToEpisode(_ episode: Entity.Episode) {
     let episodeViewController = episodeBuilder.build(episode: episode, listener: nil)
-    viewController.push(episodeViewController, animated: true)
+    viewController?.push(episodeViewController, animated: true)
   }
 }

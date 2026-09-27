@@ -1,11 +1,9 @@
-import Episode
 import Playback
 import Repository
 import RIBsLite
 
 @MainActor
 public protocol PlayerDependency {
-  var episodeBuilder: EpisodeBuildable { get }
   var playbackController: PlaybackControlling { get }
   var playbackQueueRepository: PlaybackQueueRepository { get }
   var playbackSessionRepository: PlaybackSessionRepository { get }

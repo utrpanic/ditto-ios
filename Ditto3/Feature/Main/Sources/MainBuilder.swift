@@ -1,4 +1,5 @@
 import Discover
+import Episode
 import Latest
 import Library
 import Player
@@ -6,6 +7,7 @@ import RIBsLite
 import Search
 
 public protocol MainDependency {
+  var episodeBuilder: EpisodeBuildable { get }
   var discoverBuilder: DiscoverBuildable { get }
   var latestBuilder: LatestBuildable { get }
   var libraryBuilder: LibraryBuildable { get }

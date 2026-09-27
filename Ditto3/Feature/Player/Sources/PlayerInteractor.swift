@@ -105,7 +105,7 @@ final class PlayerInteractor: Interactor, PlayerInteractable {
     case .viewQueueEpisode(let episodeID):
       guard let episode = store.state.queue.first(where: { $0.episode.id == episodeID })?.episode else { return }
       store.state.isExpanded = false
-      router?.routeToEpisode(episode)
+      listener?.playerDidRequestEpisode(episode)
     case .moveQueueItem(let episodeID, let index):
       mutateQueue { repository in
         try await repository.move(episodeID: episodeID, to: index)

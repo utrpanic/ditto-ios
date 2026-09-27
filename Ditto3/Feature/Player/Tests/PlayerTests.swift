@@ -1,5 +1,4 @@
 import Entity
-import Episode
 import Foundation
 import Playback
 import Repository
@@ -207,43 +206,23 @@ struct PlayerTests {
 
   @MainActor
   @Test
-  func viewingQueueEpisodeRoutesWithoutChangingQueue() async {
+  func viewingQueueEpisodeNotifiesListenerWithoutChangingQueue() async {
     let item = makeQueueItem(id: "next")
     let queueRepository = PlaybackQueueRepositorySpy(items: [item])
     let interactor = PlayerInteractor(dependency: Dependency(
       playbackQueueRepository: queueRepository
     ))
-    let router = RouterSpy()
-    interactor.router = router
+    let listener = Listener()
+    interactor.listener = listener
     interactor.activate()
     await waitUntil { interactor.store.state.queue == [item] }
     interactor.store.state.isExpanded = true
 
     interactor.sendAction(.viewQueueEpisode(item.episode.id))
 
-    #expect(router.routedEpisode == item.episode)
+    #expect(listener.requestedEpisode == item.episode)
     #expect(!interactor.store.state.isExpanded)
     #expect(await queueRepository.itemIDs() == [item.episode.id])
-  }
-
-  @MainActor
-  @Test
-  func routerBuildsEpisodeAndPushesItOnCurrentTab() {
-    let episode = makeQueueItem(id: "next").episode
-    let destination = UIViewController()
-    let episodeBuilder = EpisodeBuilderSpy(destination: destination)
-    let dependency = Dependency(episodeBuilder: episodeBuilder)
-    let playerViewController = PlayerViewControllerStub()
-    let tabBarController = UITabBarController()
-    let navigationController = UINavigationController(rootViewController: UIViewController())
-    tabBarController.viewControllers = [navigationController]
-    tabBarController.addChild(playerViewController)
-    let router = PlayerRouter(dependency: dependency, viewController: playerViewController)
-
-    router.routeToEpisode(episode)
-
-    #expect(episodeBuilder.builtEpisode == episode)
-    #expect(navigationController.topViewController === destination)
   }
 
   @MainActor
@@ -252,11 +231,12 @@ struct PlayerTests {
     var viewController: UIViewController? = UIViewController()
     weak let weakViewController = viewController
     let router = Router<ViewControllable>(viewController: viewController!)
+    #expect(router.viewController?.ui === viewController)
 
     viewController = nil
 
     #expect(weakViewController == nil)
-    _ = router
+    #expect(router.viewController == nil)
   }
 
   @MainActor
@@ -456,18 +436,15 @@ private func waitUntil(_ condition: () async -> Bool) async {
 
 @MainActor
 private struct Dependency: PlayerDependency {
-  let episodeBuilder: EpisodeBuildable
   let playbackController: PlaybackControlling
   let playbackQueueRepository: PlaybackQueueRepository
   let playbackSessionRepository: PlaybackSessionRepository
 
   init(
-    episodeBuilder: EpisodeBuildable? = nil,
     playbackController: PlaybackControlling? = nil,
     playbackQueueRepository: PlaybackQueueRepository? = nil,
     playbackSessionRepository: PlaybackSessionRepository? = nil
   ) {
-    self.episodeBuilder = episodeBuilder ?? EpisodeBuilderStub()
     self.playbackController = playbackController ?? PlaybackControllerSpy()
     self.playbackQueueRepository = playbackQueueRepository ?? PlaybackQueueRepositorySpy()
     self.playbackSessionRepository = playbackSessionRepository ?? PlaybackSessionRepositorySpy()
@@ -706,45 +683,16 @@ private actor PlaybackQueueRepositorySpy: PlaybackQueueRepository {
 
 @MainActor
 private final class Listener: PlayerListener {
+  private(set) var requestedEpisode: Episode?
   private(set) var visibility: [Bool] = []
   var onVisibilityChange: ((Bool) -> Void)?
+
+  func playerDidRequestEpisode(_ episode: Episode) {
+    requestedEpisode = episode
+  }
 
   func playerVisibilityDidChange(_ isVisible: Bool) {
     visibility.append(isVisible)
     onVisibilityChange?(isVisible)
   }
 }
-
-@MainActor
-private final class RouterSpy: PlayerRouting {
-  private(set) var routedEpisode: Episode?
-
-  func routeToEpisode(_ episode: Episode) {
-    routedEpisode = episode
-  }
-}
-
-@MainActor
-private final class EpisodeBuilderStub: EpisodeBuildable {
-  func build(episode: Episode, listener: EpisodeListener?) -> ViewControllable {
-    UIViewController()
-  }
-}
-
-@MainActor
-private final class EpisodeBuilderSpy: EpisodeBuildable {
-  private let destination: ViewControllable
-  private(set) var builtEpisode: Episode?
-
-  init(destination: ViewControllable) {
-    self.destination = destination
-  }
-
-  func build(episode: Episode, listener: EpisodeListener?) -> ViewControllable {
-    builtEpisode = episode
-    return destination
-  }
-}
-
-@MainActor
-private final class PlayerViewControllerStub: UIViewController, PlayerViewControllable {}

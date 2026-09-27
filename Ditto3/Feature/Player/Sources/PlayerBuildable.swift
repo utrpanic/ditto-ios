@@ -1,3 +1,4 @@
+import Entity
 import RIBsLite
 
 public protocol PlayerBuildable: Buildable {
@@ -7,5 +8,6 @@ public protocol PlayerBuildable: Buildable {
 
 @MainActor
 public protocol PlayerListener: AnyObject {
+  func playerDidRequestEpisode(_ episode: Episode)
   func playerVisibilityDidChange(_ isVisible: Bool)
 }
